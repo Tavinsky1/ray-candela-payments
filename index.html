@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
       --bg:          #09090e;
@@ -264,14 +263,41 @@
       font-size: 12px; color: var(--muted);
     }
 
-    /* ── CHART ───────────────────────────────────────────── */
-    .chart-wrap {
+    /* ── MEMBER SUMMARY ──────────────────────────────────── */
+    .member-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .member-summary-row {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 20px 16px 16px;
-      margin-top: 20px;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
+    .member-summary-row.paid-ok  { border-color: var(--green-bd); background: var(--green-bg); }
+    .member-summary-row.paid-ahead { border-color: rgba(45,216,126,0.6); background: rgba(45,216,126,0.15); }
+    .member-summary-row.unpaid-row { border-color: var(--red-bd); background: var(--red-bg); }
+    .ms-avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 800; font-size: 13px;
+      flex-shrink: 0;
+    }
+    .paid-ok .ms-avatar, .paid-ahead .ms-avatar { background: rgba(45,216,126,0.2); color: var(--green); border: 1.5px solid var(--green-bd); }
+    .unpaid-row .ms-avatar { background: var(--red-bg); color: var(--red); border: 1.5px solid var(--red-bd); }
+    .ms-info { flex: 1; min-width: 0; }
+    .ms-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ms-status { font-size: 11px; margin-top: 2px; }
+    .paid-ok .ms-status, .paid-ahead .ms-status { color: var(--green); }
+    .unpaid-row .ms-status { color: var(--red); }
+    .ms-icon { font-size: 18px; flex-shrink: 0; }
 
     /* ── FAB ─────────────────────────────────────────────── */
     .fab {
@@ -595,10 +621,7 @@ function fmtKey(key) {
   const [y, m] = key.split('-');
   return `${MONTHS_EN[+m - 1]} ${y}`;
 }
-function fmtKeyShort(key) {
-  const [y, m] = key.split('-');
-  return `${MONTHS_EN[+m - 1].slice(0,3)} '${y.slice(2)}`;
-}
+
 function nowKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
@@ -645,7 +668,6 @@ function progressHTML(paid, total) {
    MAIN RENDER
    ════════════════════════════════════════════════════════ */
 const _open = new Set();
-let   _chart = null;
 
 function render() {
   const { data } = state;
@@ -662,17 +684,20 @@ function render() {
 
   /* Admin banner */
   html += `<div class="admin-banner${state.admin ? ' show' : ''}">
-    ✏️ Admin mode active — tap avatars to toggle payment status
+    ✏️ Admin mode — tap an avatar to toggle payment
   </div>`;
 
-  /* ── CURRENT MONTH ── */
+  /* ── CURRENT MONTH BIG VIEW ── */
   html += `<div class="section-label" style="margin-top:4px">Current Month</div>`;
   const mo = data.payments[cur];
+
   if (mo) {
     ensureMembers(mo);
-    const pc   = paidCount(mo);
-    const paid = pc * ppm;
+    const pc      = paidCount(mo);
     const [yr, mn] = cur.split('-');
+    const allPaid  = pc === MEMBERS.length;
+    const pct      = Math.round(pc / MEMBERS.length * 100);
+
     html += `
     <div class="current-card" id="card-${cur}">
       <div class="current-card-top">
@@ -680,16 +705,16 @@ function render() {
           <div class="current-month-name">${MONTHS_EN[+mn-1]}</div>
           <div class="current-month-year">${yr}</div>
         </div>
-        <span class="live-badge">Live</span>
+        <span class="live-badge">${pc}/${MEMBERS.length} paid</span>
       </div>
-      <div class="progress-area" id="prog-${cur}">
+      <div class="progress-area">
         <div class="progress-meta">
-          <span class="progress-amount" id="prog-amt-${cur}">${currency}${paid.toFixed(0)} collected</span>
-          <span class="progress-target">Target: ${currency}${cost}</span>
+          <span class="progress-amount">${pc} of ${MEMBERS.length} members paid</span>
+          <span class="progress-target">${pct}%</span>
         </div>
-        ${progressHTML(paid, cost)}
+        ${progressHTML(pc, MEMBERS.length)}
       </div>
-      <div class="members-grid" id="grid-${cur}">
+      <div class="members-grid" id="grid-${cur}" style="margin-top:4px">
         ${gridHTML(mo, cur, state.admin)}
       </div>
     </div>`;
@@ -702,37 +727,64 @@ function render() {
     </div>`;
   }
 
-  /* ── STATS ── */
+  /* ── WHO STILL OWES (per-member overview across all months) ── */
   if (sorted.length > 0) {
-    const totalPaid    = Object.values(data.payments).reduce((s, m) => s + paidCount(m), 0);
-    const completedMos = Object.values(data.payments).filter(m => paidCount(m) === MEMBERS.length).length;
-    html += `
-    <div class="stats-row" style="margin-top:20px">
-      <div class="stat-box">
-        <div class="stat-val" style="color:var(--gold)">${sorted.length}</div>
-        <div class="stat-lbl">Months</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-val" style="color:var(--green)">${totalPaid}</div>
-        <div class="stat-lbl">Total payments</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-val" style="color:var(--text)">${completedMos}</div>
-        <div class="stat-lbl">Complete</div>
-      </div>
-    </div>`;
+    html += `<div class="section-label" style="margin-top:20px">Member Status</div>`;
+    html += `<div class="member-summary-grid">`;
+
+    MEMBERS.forEach(name => {
+      const ini = initials(name);
+      const fn  = name.split(' ')[0];
+
+      // Count total months in data, how many the member has paid, and future months paid
+      const totalMonths  = sorted.length;
+      const curIdx       = sorted.indexOf(cur);
+      const pastAndCur   = curIdx === -1 ? sorted : sorted.slice(curIdx); // cur + older
+      const futureMonths = curIdx === -1 ? [] : sorted.slice(0, curIdx);  // newer than cur
+
+      const paidTotal    = sorted.filter(k => data.payments[k]?.[name]).length;
+      const paidCurrent  = mo ? !!mo[name] : false;
+      const aheadMonths  = futureMonths.filter(k => data.payments[k]?.[name]).length;
+      const owedPast     = pastAndCur.filter(k => !data.payments[k]?.[name]).length;
+
+      let cls, icon, statusText;
+      if (aheadMonths > 0) {
+        cls = 'paid-ahead';
+        icon = '🚀';
+        statusText = `Paid ${aheadMonths} month${aheadMonths>1?'s':''} ahead`;
+      } else if (paidCurrent) {
+        cls = 'paid-ok';
+        icon = '✅';
+        statusText = 'Paid this month';
+      } else {
+        cls = 'unpaid-row';
+        icon = '❌';
+        statusText = owedPast > 1 ? `Owes ${owedPast} months` : 'Not paid yet';
+      }
+
+      html += `
+      <div class="member-summary-row ${cls}">
+        <div class="ms-avatar">${ini}</div>
+        <div class="ms-info">
+          <div class="ms-name">${fn}</div>
+          <div class="ms-status">${statusText}</div>
+        </div>
+        <span class="ms-icon">${icon}</span>
+      </div>`;
+    });
+
+    html += `</div>`;
   }
 
   /* ── HISTORY ── */
   const past = sorted.filter(k => k !== cur);
   if (past.length > 0) {
-    html += `<div class="section-label" style="margin-top:8px">History</div>`;
+    html += `<div class="section-label" style="margin-top:20px">History</div>`;
     past.forEach(key => {
       const mData = data.payments[key];
       ensureMembers(mData);
       const pc   = paidCount(mData);
-      const paid = pc * ppm;
-      const pct  = cost > 0 ? Math.round(paid / cost * 100) : 0;
+      const pct  = Math.round(pc / MEMBERS.length * 100);
       const open = _open.has(key);
       html += `
       <div class="month-row${open ? ' open' : ''}" id="row-${key}">
@@ -748,69 +800,12 @@ function render() {
           <div class="members-grid" id="grid-${key}">
             ${gridHTML(mData, key, state.admin)}
           </div>
-          <div class="month-body-footer">${currency}${paid.toFixed(0)} / ${currency}${cost}</div>
         </div>
       </div>`;
     });
   }
 
-  /* ── CHART ── */
-  if (sorted.length > 1) {
-    html += `
-    <div class="section-label" style="margin-top:8px">Participation per month</div>
-    <div class="chart-wrap">
-      <canvas id="chart" height="160"></canvas>
-    </div>`;
-  }
-
   document.getElementById('app').innerHTML = html;
-
-  /* Draw chart */
-  if (sorted.length > 1) {
-    if (_chart) { _chart.destroy(); _chart = null; }
-    const labels = sorted.slice().reverse().map(fmtKeyShort);
-    const vals   = sorted.slice().reverse().map(k => paidCount(data.payments[k]));
-    const total  = MEMBERS.length;
-    _chart = new Chart(document.getElementById('chart'), {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          data: vals,
-          backgroundColor: vals.map(v =>
-            v === total       ? 'rgba(45,216,126,0.65)' :
-            v >= total * 0.63 ? 'rgba(240,160,48,0.65)' :
-                                'rgba(255,75,75,0.45)'
-          ),
-          borderColor: vals.map(v =>
-            v === total       ? '#2dd87e' :
-            v >= total * 0.63 ? '#f0a030' :
-                                '#ff4b4b'
-          ),
-          borderWidth: 1.5,
-          borderRadius: 5
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: c => `${c.parsed.y} of ${total} paid` } }
-        },
-        scales: {
-          y: {
-            beginAtZero: true, max: total,
-            ticks: { stepSize: 1, color: '#6a6a88', font: { size: 11 } },
-            grid: { color: 'rgba(255,255,255,0.04)' }
-          },
-          x: {
-            ticks: { color: '#6a6a88', font: { size: 11 } },
-            grid: { display: false }
-          }
-        }
-      }
-    });
-  }
 }
 
 /* ════════════════════════════════════════════════════════
@@ -833,20 +828,6 @@ function tapMember(monthKey, encodedName) {
   // Optimistic update — grid
   const grid = document.getElementById(`grid-${monthKey}`);
   if (grid) grid.innerHTML = gridHTML(state.data.payments[monthKey], monthKey, true);
-
-  // Optimistic update — progress bar (current month)
-  if (monthKey === nowKey()) {
-    const cfg  = state.data.config || {};
-    const cost = cfg.cost || cfg.roomCost || 0;
-    const ppm  = MEMBERS.length > 0 ? cost / MEMBERS.length : 0;
-    const pc   = paidCount(state.data.payments[monthKey]);
-    const paid = pc * ppm;
-    const pct  = cost > 0 ? Math.min(100, Math.round(paid / cost * 100)) : 0;
-    const fill = document.querySelector(`#card-${monthKey} .progress-fill`);
-    const amt  = document.getElementById(`prog-amt-${monthKey}`);
-    if (fill) fill.style.width = pct + '%';
-    if (amt)  amt.textContent = `${cfg.currency || '€'}${paid.toFixed(0)} collected`;
-  }
 
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(async () => {
