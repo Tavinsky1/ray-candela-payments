@@ -1,0 +1,48 @@
+{
+  "config": {
+    "roomCost": 400,
+    "currency": "€"
+  },
+  "payments": {
+    "2026-01": {
+      "Agustín": true,
+      "Agus": true,
+      "Eric": true,
+      "Ludwig": false,
+      "Juan Pablo": true,
+      "Renzo": true,
+      "Adrian": true,
+      "Tavo": true
+    },
+    "2026-02": {
+      "Agustín": true,
+      "Agus": false,
+      "Eric": true,
+      "Ludwig": true,
+      "Juan Pablo": true,
+      "Renzo": false,
+      "Adrian": true,
+      "Tavo": true
+    },
+    "2026-03": {
+      "Agustín": true,
+      "Agus": true,
+      "Eric": false,
+      "Ludwig": true,
+      "Juan Pablo": true,
+      "Renzo": true,
+      "Adrian": true,
+      "Tavo": false
+    },
+    "2026-04": {
+      "Agustín": false,
+      "Agus": false,
+      "Eric": false,
+      "Ludwig": false,
+      "Juan Pablo": false,
+      "Renzo": false,
+      "Adrian": false,
+      "Tavo": false
+    }
+  }
+}

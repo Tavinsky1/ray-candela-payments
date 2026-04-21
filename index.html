@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Ray Candela – Pagos del Salón</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:          #09090e;
+      --card:        #13131d;
+      --card2:       #1b1b28;
+      --border:      rgba(255,255,255,0.07);
+      --border-hi:   rgba(255,255,255,0.13);
+      --gold:        #f0a030;
+      --gold-dim:    rgba(240,160,48,0.12);
+      --green:       #2dd87e;
+      --green-bg:    rgba(45,216,126,0.10);
+      --green-bd:    rgba(45,216,126,0.38);
+      --red:         #ff4b4b;
+      --red-bg:      rgba(255,75,75,0.09);
+      --red-bd:      rgba(255,75,75,0.32);
+      --text:        #ededf5;
+      --muted:       #6a6a88;
+      --muted2:      #9898b8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding-bottom: 110px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── HEADER ──────────────────────────────────────────── */
+    .header {
+      position: relative;
+      overflow: hidden;
+      padding: 36px 20px 26px;
+      text-align: center;
+      background: linear-gradient(180deg, #1e0d00 0%, var(--bg) 100%);
+      border-bottom: 1px solid var(--border);
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 340px; height: 220px;
+      background: radial-gradient(ellipse, rgba(240,160,48,0.13) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .header-icon { font-size: 48px; line-height: 1; margin-bottom: 10px; display: block; }
+    .header h1 {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 900;
+      font-size: 32px;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .header-sub {
+      font-size: 10.5px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    /* ── LAYOUT ──────────────────────────────────────────── */
+    .container { max-width: 580px; margin: 0 auto; padding: 22px 14px; }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+      padding-left: 2px;
+    }
+
+    /* ── ADMIN BANNER ────────────────────────────────────── */
+    .admin-banner {
+      background: rgba(240,160,48,0.07);
+      border: 1px solid rgba(240,160,48,0.22);
+      border-radius: 10px;
+      padding: 9px 14px;
+      font-size: 12px;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .admin-banner.show { display: block; }
+
+    /* ── CURRENT MONTH CARD ──────────────────────────────── */
+    .current-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px 20px 20px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .current-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+    }
+    .current-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    .current-month-name {
+      font-family: 'Raleway', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .current-month-year { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .live-badge {
+      background: var(--gold);
+      color: #000;
+      font-family: 'Raleway', sans-serif;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* ── PROGRESS ────────────────────────────────────────── */
+    .progress-area { margin-bottom: 22px; }
+    .progress-meta { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+    .progress-amount { color: var(--green); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .progress-target { color: var(--muted2); }
+    .progress-track { height: 7px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
+    .progress-fill {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--green), #1fb865);
+      transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+      min-width: 0;
+    }
+
+    /* ── MEMBERS GRID ────────────────────────────────────── */
+    .members-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+    .member-chip { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .member-chip.clickable { cursor: pointer; }
+    .member-chip.clickable .member-avatar { transition: transform 0.15s ease; }
+    .member-chip.clickable:active .member-avatar { transform: scale(0.88); }
+
+    .member-avatar {
+      width: 54px; height: 54px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      position: relative;
+      user-select: none;
+    }
+    .member-avatar.paid {
+      background: var(--green-bg);
+      border: 2px solid var(--green-bd);
+      color: var(--green);
+      box-shadow: 0 0 14px rgba(45,216,126,0.12);
+    }
+    .member-avatar.unpaid {
+      background: var(--red-bg);
+      border: 2px solid var(--red-bd);
+      color: var(--red);
+    }
+    .member-dot {
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--card);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700;
+    }
+    .paid .member-dot  { background: var(--green); color: #fff; }
+    .unpaid .member-dot { background: var(--red);   color: #fff; }
+    .member-label {
+      font-size: 11px;
+      color: var(--muted2);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 64px;
+    }
+
+    /* ── STATS ROW ───────────────────────────────────────── */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+    .stat-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 8px;
+      text-align: center;
+    }
+    .stat-val {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 800;
+      font-size: 26px;
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+    .stat-lbl { font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+
+    /* ── HISTORY ROWS ────────────────────────────────────── */
+    .month-row {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .month-row:hover { border-color: var(--border-hi); }
+    .month-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .month-row-name {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .month-row-right { display: flex; align-items: center; gap: 10px; }
+    .mini-bar { width: 56px; height: 5px; background: rgba(255,255,255,0.06); border-radius: 5px; overflow: hidden; }
+    .mini-bar-fill { height: 100%; background: var(--green); border-radius: 5px; }
+    .month-count { font-size: 12px; color: var(--muted2); font-variant-numeric: tabular-nums; }
+    .chevron { color: var(--muted); font-size: 11px; transition: transform 0.25s; line-height: 1; }
+    .month-row.open .chevron { transform: rotate(180deg); }
+    .month-row-body { display: none; padding: 0 16px 16px; }
+    .month-row.open .month-row-body { display: block; }
+    .month-body-footer {
+      display: flex; justify-content: flex-end;
+      margin-top: 12px;
+      font-size: 12px; color: var(--muted);
+    }
+
+    /* ── CHART ───────────────────────────────────────────── */
+    .chart-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px 16px 16px;
+      margin-top: 20px;
+    }
+
+    /* ── FAB ─────────────────────────────────────────────── */
+    .fab {
+      position: fixed;
+      bottom: 28px; right: 18px;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 21px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      z-index: 50;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+    }
+    .fab:hover, .fab.on { background: var(--gold); color: #000; border-color: var(--gold); }
+
+    /* ── OVERLAY / MODAL ─────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.82);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .overlay.show { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px 24px 0 0;
+      width: 100%; max-width: 580px;
+      padding: 20px 18px 52px;
+      max-height: 92vh; overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+    }
+    .overlay.show .modal { transform: translateY(0); }
+
+    .drag-bar {
+      width: 38px; height: 4px;
+      background: rgba(255,255,255,0.11);
+      border-radius: 2px;
+      margin: 0 auto 24px;
+    }
+
+    .modal h2 {
+      font-family: 'Raleway', sans-serif;
+      font-size: 20px; font-weight: 700;
+      color: var(--gold); margin-bottom: 4px;
+    }
+    .modal-sub { font-size: 13px; color: var(--muted2); margin-bottom: 24px; }
+
+    /* ── FORM ────────────────────────────────────────────── */
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px;
+    }
+    .field input, .field select {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 13px 14px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    .field input:focus, .field select:focus { border-color: var(--gold); }
+    .field select option { background: var(--card2); }
+
+    /* ── BUTTONS ─────────────────────────────────────────── */
+    .btn {
+      width: 100%; padding: 14px;
+      border: none; border-radius: 12px;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 700; font-size: 13px;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-gold { background: var(--gold); color: #000; }
+    .btn-gold:hover { opacity: 0.88; }
+    .btn-ghost { background: transparent; color: var(--muted2); border: 1px solid var(--border); margin-top: 10px; }
+    .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-bd); margin-top: 10px; }
+
+    /* ── FEEDBACK ────────────────────────────────────────── */
+    .feedback { border-radius: 9px; padding: 10px 14px; font-size: 13px; text-align: center; margin-top: 12px; display: none; }
+    .feedback.ok  { background: var(--green-bg); color: var(--green); display: block; }
+    .feedback.err { background: var(--red-bg);   color: var(--red);   display: block; }
+
+    /* ── TOAST ───────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 92px; left: 50%;
+      transform: translateX(-50%);
+      padding: 9px 22px; border-radius: 22px;
+      font-size: 13px; font-weight: 600; color: #fff;
+      pointer-events: none; z-index: 999;
+      opacity: 0; transition: opacity 0.3s;
+      white-space: nowrap;
+    }
+
+    /* ── HINT BOX ────────────────────────────────────────── */
+    .hint-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 14px;
+      font-size: 12.5px;
+      color: var(--muted2);
+      line-height: 1.9;
+      margin-bottom: 18px;
+    }
+    .hint-box a { color: var(--gold); text-decoration: none; }
+    .hint-box strong { color: var(--text); }
+
+    /* ── LOADING ─────────────────────────────────────────── */
+    .loading-state { text-align: center; padding: 90px 20px; color: var(--muted); font-size: 14px; }
+    .spinner {
+      width: 30px; height: 30px;
+      border: 3px solid var(--border); border-top-color: var(--gold);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── ADD MONTH PLACEHOLDER ───────────────────────────── */
+    .add-month-hint {
+      border: 1px dashed rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 8px;
+    }
+    .add-month-hint:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 380px) {
+      .header h1 { font-size: 26px; letter-spacing: 4px; }
+      .member-avatar { width: 46px; height: 46px; font-size: 14px; }
+      .members-grid { gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <span class="header-icon">🎸</span>
+  <h1>Ray Candela</h1>
+  <div class="header-sub">Control de Pagos · Salón de Ensayo</div>
+</header>
+
+<div class="container" id="app">
+  <div class="loading-state">
+    <div class="spinner"></div>
+    Cargando datos…
+  </div>
+</div>
+
+<!-- Floating admin button -->
+<button class="fab" id="fab" title="Panel Admin">⚙</button>
+
+<!-- Modal overlay -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <div class="drag-bar"></div>
+
+    <!-- ── AUTH PANEL ── -->
+    <div id="panelAuth">
+      <h2>🔐 Acceso Admin</h2>
+      <p class="modal-sub">Solo Adrian puede modificar los pagos.</p>
+
+      <div class="hint-box" id="hintBox">
+        <strong>Cómo obtener tu GitHub Token (una sola vez):</strong><br>
+        1. Entrá a <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a><br>
+        2. Nombre: <strong>Ray Candela Pagos</strong><br>
+        3. Expiración: Sin expiración<br>
+        4. Tildá el permiso: <strong>repo</strong><br>
+        5. Generalo y pegalo abajo.<br><br>
+        <em>Tu token se guarda solo en este dispositivo.</em>
+      </div>
+
+      <div class="field">
+        <label>GitHub Personal Access Token</label>
+        <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false" />
+      </div>
+      <button class="btn btn-gold" id="loginBtn">Ingresar</button>
+      <button class="btn btn-ghost" id="cancelAuthBtn">Cancelar</button>
+      <div class="feedback" id="authFeedback"></div>
+    </div>
+
+    <!-- ── EDIT PANEL ── -->
+    <div id="panelEdit" style="display:none">
+      <h2>✏️ Editar Pagos</h2>
+      <p class="modal-sub">Tocá los avatares para marcar/desmarcar. Guardá cuando termines.</p>
+
+      <div class="field">
+        <label>Mes</label>
+        <select id="editMonthSel"></select>
+      </div>
+      <div id="editGrid" class="members-grid" style="margin-bottom:20px"></div>
+
+      <div class="field">
+        <label>Costo del salón ese mes (€)</label>
+        <input type="number" id="costInput" min="0" placeholder="400" />
+      </div>
+
+      <button class="btn btn-gold" id="saveBtn">💾 Guardar cambios</button>
+      <button class="btn btn-ghost" id="addMonthModalBtn">＋ Agregar mes actual</button>
+      <button class="btn btn-danger" id="logoutBtn">Cerrar sesión de Adrian</button>
+      <div class="feedback" id="saveFeedback"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   CONFIG — fill GH_OWNER before deploying
+   ════════════════════════════════════════════════════════ */
+const GH_OWNER  = 'Tavinsky1';            // ← your GitHub username
+const GH_REPO   = 'ray-candela-payments'; // ← repo name (must match)
+const GH_FILE   = 'data.json';
+const GH_BRANCH = 'main';
+
+const MEMBERS = [
+  'Agustín', 'Agus', 'Eric', 'Ludwig',
+  'Juan Pablo', 'Renzo', 'Adrian', 'Tavo'
+];
+
+const MONTHS_ES = [
+  'Enero','Febrero','Marzo','Abril','Mayo','Junio',
+  'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
+];
+
+/* ════════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════════ */
+const state = {
+  data:  null,
+  sha:   null,
+  admin: false,
+  token: localStorage.getItem('rc_gh_token') || ''
+};
+
+/* ════════════════════════════════════════════════════════
+   GITHUB API
+   ════════════════════════════════════════════════════════ */
+async function ghFetch() {
+  const headers = { Accept: 'application/vnd.github+json' };
+  if (state.token) headers.Authorization = `Bearer ${state.token}`;
+  const res = await fetch(
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}?ref=${GH_BRANCH}&_=${Date.now()}`,
+    { headers }
+  );
+  if (!res.ok) throw new Error(`GitHub respondió ${res.status}. ¿El repo existe y es público?`);
+  const j = await res.json();
+  state.sha = j.sha;
+  return JSON.parse(atob(j.content.replace(/[\n\r]/g, '')));
+}
+
+async function ghSave(data) {
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+  const res = await fetch(
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${state.token}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/vnd.github+json'
+      },
+      body: JSON.stringify({
+        message: '💰 Actualización de pagos',
+        content,
+        sha: state.sha,
+        branch: GH_BRANCH
+      })
+    }
+  );
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.message || `HTTP ${res.status}`);
+  }
+  const result = await res.json();
+  state.sha = result.content.sha;
+}
+
+async function ghVerify(token) {
+  const res = await fetch(
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}`,
+    { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' } }
+  );
+  return res.ok;
+}
+
+/* ════════════════════════════════════════════════════════
+   HELPERS
+   ════════════════════════════════════════════════════════ */
+function fmtKey(key) {
+  const [y, m] = key.split('-');
+  return `${MONTHS_ES[+m - 1]} ${y}`;
+}
+function fmtKeyShort(key) {
+  const [y, m] = key.split('-');
+  return `${MONTHS_ES[+m - 1].slice(0,3)} '${y.slice(2)}`;
+}
+function nowKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function initials(name) {
+  const p = name.trim().split(' ');
+  return p.length > 1 ? (p[0][0]+p[1][0]).toUpperCase() : name.slice(0,2).toUpperCase();
+}
+function paidCount(mo) { return MEMBERS.filter(m => mo[m]).length; }
+function ensureMembers(mo) { MEMBERS.forEach(m => { if (!(m in mo)) mo[m] = false; }); }
+
+/* ════════════════════════════════════════════════════════
+   RENDER HELPERS
+   ════════════════════════════════════════════════════════ */
+function chipHTML(name, paid, monthKey, clickable) {
+  const ini  = initials(name);
+  const cls  = paid ? 'paid' : 'unpaid';
+  const dot  = paid ? '✓' : '✗';
+  const fn   = name.split(' ')[0];
+  const cl   = clickable ? 'clickable' : '';
+  const oc   = clickable ? `onclick="tapMember('${monthKey}','${encodeURIComponent(name)}')"` : '';
+  return `
+  <div class="member-chip ${cl}" ${oc}>
+    <div class="member-avatar ${cls}">
+      ${ini}<span class="member-dot">${dot}</span>
+    </div>
+    <span class="member-label">${fn}</span>
+  </div>`;
+}
+
+function gridHTML(mo, key, clickable) {
+  return MEMBERS.map(n => chipHTML(n, !!mo[n], key, clickable)).join('');
+}
+
+function progressHTML(paid, total) {
+  const pct = total > 0 ? Math.min(100, Math.round(paid / total * 100)) : 0;
+  return `
+  <div class="progress-track">
+    <div class="progress-fill" style="width:${pct}%"></div>
+  </div>`;
+}
+
+/* ════════════════════════════════════════════════════════
+   MAIN RENDER
+   ════════════════════════════════════════════════════════ */
+const _open = new Set();
+let   _chart = null;
+
+function render() {
+  const { data } = state;
+  if (!data) return;
+
+  const cfg      = data.config || {};
+  const cost     = cfg.roomCost || 0;
+  const currency = cfg.currency || '€';
+  const ppm      = MEMBERS.length > 0 ? cost / MEMBERS.length : 0;
+  const cur      = nowKey();
+  const sorted   = Object.keys(data.payments).sort().reverse();
+
+  let html = '';
+
+  /* Admin banner */
+  html += `<div class="admin-banner${state.admin ? ' show' : ''}">
+    ✏️ Modo Admin activo — tocá los avatares para cambiar el estado
+  </div>`;
+
+  /* ── CURRENT MONTH ── */
+  html += `<div class="section-label" style="margin-top:4px">Mes en curso</div>`;
+  const mo = data.payments[cur];
+  if (mo) {
+    ensureMembers(mo);
+    const pc   = paidCount(mo);
+    const paid = pc * ppm;
+    const [yr, mn] = cur.split('-');
+    html += `
+    <div class="current-card" id="card-${cur}">
+      <div class="current-card-top">
+        <div>
+          <div class="current-month-name">${MONTHS_ES[+mn-1]}</div>
+          <div class="current-month-year">${yr}</div>
+        </div>
+        <span class="live-badge">En curso</span>
+      </div>
+      <div class="progress-area" id="prog-${cur}">
+        <div class="progress-meta">
+          <span class="progress-amount" id="prog-amt-${cur}">${currency}${paid.toFixed(0)} recaudados</span>
+          <span class="progress-target">Meta: ${currency}${cost}</span>
+        </div>
+        ${progressHTML(paid, cost)}
+      </div>
+      <div class="members-grid" id="grid-${cur}">
+        ${gridHTML(mo, cur, state.admin)}
+      </div>
+    </div>`;
+  } else {
+    html += `
+    <div class="current-card" style="text-align:center;padding:40px 20px">
+      <div style="font-size:38px;margin-bottom:12px">📅</div>
+      <div style="color:var(--muted2);font-size:14px">${fmtKey(cur)} todavía no tiene datos.</div>
+      ${state.admin ? `<div class="add-month-hint" style="display:inline-block;margin-top:16px;padding:9px 22px" onclick="addMonth('${cur}')">＋ Agregar ${fmtKey(cur)}</div>` : ''}
+    </div>`;
+  }
+
+  /* ── STATS ── */
+  if (sorted.length > 0) {
+    const totalPaid    = Object.values(data.payments).reduce((s, m) => s + paidCount(m), 0);
+    const completedMos = Object.values(data.payments).filter(m => paidCount(m) === MEMBERS.length).length;
+    html += `
+    <div class="stats-row" style="margin-top:20px">
+      <div class="stat-box">
+        <div class="stat-val" style="color:var(--gold)">${sorted.length}</div>
+        <div class="stat-lbl">Meses</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" style="color:var(--green)">${totalPaid}</div>
+        <div class="stat-lbl">Pagos totales</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" style="color:var(--text)">${completedMos}</div>
+        <div class="stat-lbl">Completos</div>
+      </div>
+    </div>`;
+  }
+
+  /* ── HISTORY ── */
+  const past = sorted.filter(k => k !== cur);
+  if (past.length > 0) {
+    html += `<div class="section-label" style="margin-top:8px">Historial</div>`;
+    past.forEach(key => {
+      const mData = data.payments[key];
+      ensureMembers(mData);
+      const pc   = paidCount(mData);
+      const paid = pc * ppm;
+      const pct  = cost > 0 ? Math.round(paid / cost * 100) : 0;
+      const open = _open.has(key);
+      html += `
+      <div class="month-row${open ? ' open' : ''}" id="row-${key}">
+        <div class="month-row-header" onclick="toggleRow('${key}')">
+          <span class="month-row-name">${fmtKey(key)}</span>
+          <div class="month-row-right">
+            <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
+            <span class="month-count">${pc}/${MEMBERS.length}</span>
+            <span class="chevron">▾</span>
+          </div>
+        </div>
+        <div class="month-row-body">
+          <div class="members-grid" id="grid-${key}">
+            ${gridHTML(mData, key, state.admin)}
+          </div>
+          <div class="month-body-footer">${currency}${paid.toFixed(0)} / ${currency}${cost}</div>
+        </div>
+      </div>`;
+    });
+  }
+
+  /* ── CHART ── */
+  if (sorted.length > 1) {
+    html += `
+    <div class="section-label" style="margin-top:8px">Participación por mes</div>
+    <div class="chart-wrap">
+      <canvas id="chart" height="160"></canvas>
+    </div>`;
+  }
+
+  document.getElementById('app').innerHTML = html;
+
+  /* Draw chart */
+  if (sorted.length > 1) {
+    if (_chart) { _chart.destroy(); _chart = null; }
+    const labels = sorted.slice().reverse().map(fmtKeyShort);
+    const vals   = sorted.slice().reverse().map(k => paidCount(data.payments[k]));
+    const total  = MEMBERS.length;
+    _chart = new Chart(document.getElementById('chart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: vals,
+          backgroundColor: vals.map(v =>
+            v === total       ? 'rgba(45,216,126,0.65)' :
+            v >= total * 0.63 ? 'rgba(240,160,48,0.65)' :
+                                'rgba(255,75,75,0.45)'
+          ),
+          borderColor: vals.map(v =>
+            v === total       ? '#2dd87e' :
+            v >= total * 0.63 ? '#f0a030' :
+                                '#ff4b4b'
+          ),
+          borderWidth: 1.5,
+          borderRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: c => `${c.parsed.y} de ${total} pagaron` } }
+        },
+        scales: {
+          y: {
+            beginAtZero: true, max: total,
+            ticks: { stepSize: 1, color: '#6a6a88', font: { size: 11 } },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          },
+          x: {
+            ticks: { color: '#6a6a88', font: { size: 11 } },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   INTERACTIONS
+   ════════════════════════════════════════════════════════ */
+function toggleRow(key) {
+  if (_open.has(key)) _open.delete(key);
+  else _open.add(key);
+  const row = document.getElementById(`row-${key}`);
+  if (row) row.classList.toggle('open');
+}
+
+let _saveTimer;
+function tapMember(monthKey, encodedName) {
+  if (!state.admin) return;
+  const name = decodeURIComponent(encodedName);
+  if (!state.data.payments[monthKey]) return;
+  state.data.payments[monthKey][name] = !state.data.payments[monthKey][name];
+
+  // Optimistic update — grid
+  const grid = document.getElementById(`grid-${monthKey}`);
+  if (grid) grid.innerHTML = gridHTML(state.data.payments[monthKey], monthKey, true);
+
+  // Optimistic update — progress bar (current month)
+  if (monthKey === nowKey()) {
+    const cfg  = state.data.config || {};
+    const cost = cfg.cost || cfg.roomCost || 0;
+    const ppm  = MEMBERS.length > 0 ? cost / MEMBERS.length : 0;
+    const pc   = paidCount(state.data.payments[monthKey]);
+    const paid = pc * ppm;
+    const pct  = cost > 0 ? Math.min(100, Math.round(paid / cost * 100)) : 0;
+    const fill = document.querySelector(`#card-${monthKey} .progress-fill`);
+    const amt  = document.getElementById(`prog-amt-${monthKey}`);
+    if (fill) fill.style.width = pct + '%';
+    if (amt)  amt.textContent = `${cfg.currency || '€'}${paid.toFixed(0)} recaudados`;
+  }
+
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(async () => {
+    try {
+      await ghSave(state.data);
+      toast('✓ Guardado', false);
+    } catch(e) {
+      toast('❌ ' + e.message, true);
+    }
+  }, 900);
+}
+
+function addMonth(key) {
+  if (state.data.payments[key]) return;
+  state.data.payments[key] = {};
+  MEMBERS.forEach(m => state.data.payments[key][m] = false);
+  render();
+}
+
+/* ════════════════════════════════════════════════════════
+   TOAST
+   ════════════════════════════════════════════════════════ */
+let _toastTimer;
+function toast(msg, err) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = err ? '#e74c3c' : '#2dd87e';
+  el.style.opacity = '1';
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.style.opacity = '0', 2700);
+}
+
+/* ════════════════════════════════════════════════════════
+   MODAL
+   ════════════════════════════════════════════════════════ */
+const overlay = document.getElementById('overlay');
+const fab     = document.getElementById('fab');
+
+function openModal()  { overlay.classList.add('show'); }
+function closeModal() { overlay.classList.remove('show'); }
+
+function showAuth() {
+  document.getElementById('panelAuth').style.display = 'block';
+  document.getElementById('panelEdit').style.display = 'none';
+  document.getElementById('authFeedback').className = 'feedback';
+  if (state.token) {
+    document.getElementById('tokenInput').value = state.token;
+    document.getElementById('hintBox').style.display = 'none';
+  } else {
+    document.getElementById('hintBox').style.display = 'block';
+  }
+}
+
+function showEdit() {
+  document.getElementById('panelAuth').style.display = 'none';
+  document.getElementById('panelEdit').style.display = 'block';
+  populateEdit();
+}
+
+function populateEdit() {
+  const { data } = state;
+  if (!data) return;
+  const sel    = document.getElementById('editMonthSel');
+  const months = Object.keys(data.payments).sort().reverse();
+  sel.innerHTML = months.map(k => `<option value="${k}">${fmtKey(k)}</option>`).join('');
+  document.getElementById('costInput').value = data.config?.roomCost || '';
+  renderEditGrid(sel.value);
+  sel.onchange = () => renderEditGrid(sel.value);
+}
+
+function renderEditGrid(monthKey) {
+  const grid = document.getElementById('editGrid');
+  if (!grid || !state.data?.payments?.[monthKey]) return;
+  const mo = state.data.payments[monthKey];
+  grid.innerHTML = MEMBERS.map(name => {
+    const paid = !!mo[name];
+    const ini  = initials(name);
+    const ename = encodeURIComponent(name);
+    return `
+    <div class="member-chip clickable" onclick="tapEditMember('${monthKey}','${ename}')">
+      <div class="member-avatar ${paid ? 'paid' : 'unpaid'}">
+        ${ini}<span class="member-dot">${paid ? '✓' : '✗'}</span>
+      </div>
+      <span class="member-label">${name.split(' ')[0]}</span>
+    </div>`;
+  }).join('');
+}
+
+function tapEditMember(monthKey, encodedName) {
+  const name = decodeURIComponent(encodedName);
+  if (!state.data.payments[monthKey]) return;
+  state.data.payments[monthKey][name] = !state.data.payments[monthKey][name];
+  renderEditGrid(monthKey);
+  // also update main view
+  const grid = document.getElementById(`grid-${monthKey}`);
+  if (grid) grid.innerHTML = gridHTML(state.data.payments[monthKey], monthKey, true);
+}
+
+/* ════════════════════════════════════════════════════════
+   EVENT LISTENERS
+   ════════════════════════════════════════════════════════ */
+fab.addEventListener('click', () => {
+  if (state.admin) showEdit(); else showAuth();
+  openModal();
+});
+
+overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+document.getElementById('cancelAuthBtn').addEventListener('click', closeModal);
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const token = document.getElementById('tokenInput').value.trim();
+  const fb    = document.getElementById('authFeedback');
+  const btn   = document.getElementById('loginBtn');
+  if (!token) { fb.className = 'feedback err'; fb.textContent = 'Ingresá tu token.'; return; }
+
+  btn.textContent = 'Verificando…'; btn.disabled = true; fb.className = 'feedback';
+  try {
+    if (await ghVerify(token)) {
+      state.token = token;
+      localStorage.setItem('rc_gh_token', token);
+      state.admin = true;
+      fab.classList.add('on');
+      showEdit();
+      render();
+    } else {
+      fb.className = 'feedback err';
+      fb.textContent = 'Token inválido o sin acceso al repo.';
+    }
+  } catch {
+    fb.className = 'feedback err'; fb.textContent = 'Error de red.';
+  } finally {
+    btn.textContent = 'Ingresar'; btn.disabled = false;
+  }
+});
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('saveBtn');
+  const fb  = document.getElementById('saveFeedback');
+  const val = parseFloat(document.getElementById('costInput').value);
+  if (!isNaN(val) && val >= 0) {
+    if (!state.data.config) state.data.config = {};
+    state.data.config.roomCost = val;
+  }
+  btn.textContent = 'Guardando…'; btn.disabled = true; fb.className = 'feedback';
+  try {
+    await ghSave(state.data);
+    fb.className = 'feedback ok'; fb.textContent = '✓ Guardado correctamente.';
+    render();
+  } catch(e) {
+    fb.className = 'feedback err'; fb.textContent = '❌ ' + e.message;
+  } finally {
+    btn.textContent = '💾 Guardar cambios'; btn.disabled = false;
+  }
+});
+
+document.getElementById('addMonthModalBtn').addEventListener('click', () => {
+  const key = nowKey();
+  if (!state.data.payments[key]) {
+    state.data.payments[key] = {};
+    MEMBERS.forEach(m => state.data.payments[key][m] = false);
+  }
+  populateEdit();
+  render();
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  state.admin = false;
+  state.token = '';
+  localStorage.removeItem('rc_gh_token');
+  fab.classList.remove('on');
+  closeModal();
+  render();
+});
+
+/* ════════════════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════════════════ */
+async function init() {
+  if (GH_OWNER === 'GITHUB_USERNAME') {
+    document.getElementById('app').innerHTML = `
+    <div style="padding:60px 20px;text-align:center">
+      <div style="font-size:40px;margin-bottom:14px">⚙️</div>
+      <div style="font-family:Raleway,sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px">Configuración pendiente</div>
+      <div style="font-size:13px;color:var(--muted2);line-height:1.8">
+        Abrí <strong style="color:var(--gold)">index.html</strong> y reemplazá<br>
+        <code style="background:rgba(255,255,255,0.07);padding:3px 8px;border-radius:5px">'GITHUB_USERNAME'</code><br>
+        con tu usuario de GitHub.
+      </div>
+    </div>`;
+    return;
+  }
+
+  try {
+    state.data = await ghFetch();
+    if (state.token) {
+      const ok = await ghVerify(state.token);
+      if (ok) { state.admin = true; fab.classList.add('on'); }
+      else    { state.token = ''; localStorage.removeItem('rc_gh_token'); }
+    }
+    render();
+  } catch(e) {
+    document.getElementById('app').innerHTML = `
+    <div style="padding:60px 20px;text-align:center">
+      <div style="font-size:40px;margin-bottom:12px">⚠️</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px">No se pudo cargar</div>
+      <div style="font-size:13px;color:var(--muted2);margin-bottom:20px">${e.message}</div>
+      <button onclick="init()" style="padding:12px 28px;background:var(--gold);border:none;border-radius:11px;font-family:Raleway,sans-serif;font-weight:700;cursor:pointer;font-size:13px">
+        Reintentar
+      </button>
+    </div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
