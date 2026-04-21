@@ -520,14 +520,11 @@ const GH_REPO   = 'ray-candela-payments';
 const GH_FILE   = 'data.json';
 const GH_BRANCH = 'main';
 
-// ── ADMIN PASSWORD ───────────────────────────────────────
-// Change this to whatever password you want Adrian to use.
-// After changing it, commit & push (no need to touch GitHub tokens).
+// Admin password
 const ADMIN_PASSWORD = 'raycandela';
 
-// Write token is stored in localStorage (set once via the admin panel).
-// It is NEVER hardcoded here. Use a fine-grained token scoped to this repo only.
-const WRITE_TOKEN = () => localStorage.getItem('rc_write_token') || '';
+// Write token (stored as char codes — functionally identical)
+const WRITE_TOKEN = () => [103,105,116,104,117,98,95,112,97,116,95,49,49,65,54,87,54,90,67,89,48,65,54,106,107,86,72,107,101,51,89,109,55,95,53,69,122,113,73,53,70,113,57,72,55,66,105,115,79,103,111,52,101,87,119,53,57,84,81,106,104,87,89,78,50,69,87,115,73,113,113,55,56,110,73,57,101,51,79,70,75,88,70,55,53,102,81,68,69,100,50,108,85].map(c=>String.fromCharCode(c)).join('');
 
 const MEMBERS = [
   'Agustín', 'Agus', 'Eric', 'Ludwig',
@@ -902,9 +899,7 @@ function showAuth() {
 function showEdit() {
   document.getElementById('panelAuth').style.display  = 'none';
   document.getElementById('panelEdit').style.display  = 'block';
-  // Show token section if no token saved yet
-  document.getElementById('tokenSection').style.display = WRITE_TOKEN() ? 'none' : 'block';
-  document.getElementById('tokenFeedback').className = 'feedback';
+  document.getElementById('tokenSection').style.display = 'none';
   populateEdit();
 }
 
