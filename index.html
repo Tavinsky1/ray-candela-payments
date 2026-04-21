@@ -471,6 +471,24 @@
       <h2>✏️ Edit Payments</h2>
       <p class="modal-sub">Tap avatars to mark/unmark. Save when done.</p>
 
+      <!-- Token section shown only when token not yet saved -->
+      <div id="tokenSection" style="display:none;margin-bottom:18px">
+        <div class="hint-box">
+          <strong>🔑 One-time setup (Tavo &amp; Adrian):</strong><br>
+          1. Go to <a href="https://github.com/settings/tokens?type=beta" target="_blank">github.com/settings/tokens?type=beta</a><br>
+          2. Generate new token → <strong>Repository access</strong> → Only <strong>ray-candela-payments</strong><br>
+          3. Permissions → <strong>Contents: Read and Write</strong> only<br>
+          4. Paste below. Saved only on your device, never in the code.
+        </div>
+        <div class="field">
+          <label>GitHub Fine-grained Token</label>
+          <input type="password" id="writeTokenInput" placeholder="github_pat_…" autocomplete="off" spellcheck="false" />
+        </div>
+        <button class="btn btn-gold" id="saveTokenBtn" style="margin-bottom:14px">🔑 Save Token</button>
+        <div class="feedback" id="tokenFeedback"></div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:18px 0">
+      </div>
+
       <div class="field">
         <label>Month</label>
         <select id="editMonthSel"></select>
@@ -484,28 +502,9 @@
 
       <button class="btn btn-gold" id="saveBtn">💾 Save changes</button>
       <button class="btn btn-ghost" id="addMonthModalBtn">＋ Add current month</button>
-      <button class="btn btn-danger" id="logoutBtn">Log out (Adrian)</button>
+      <button class="btn btn-ghost" id="changeTokenBtn" style="margin-top:10px;font-size:11px;opacity:0.6">🔑 Update write token</button>
+      <button class="btn btn-danger" id="logoutBtn">Log out</button>
       <div class="feedback" id="saveFeedback"></div>
-    </div>
-
-    <!-- ── TOKEN SETUP PANEL ── -->
-    <div id="panelToken" style="display:none">
-      <h2>🔑 One-time Setup</h2>
-      <p class="modal-sub">Paste your fine-grained GitHub token below (Tavo only, once).</p>
-      <div class="hint-box">
-        <strong>Get a fine-grained token:</strong><br>
-        1. Go to <a href="https://github.com/settings/tokens?type=beta" target="_blank">github.com/settings/tokens?type=beta</a><br>
-        2. Generate new token → set <strong>Repository access</strong> → Only <strong>ray-candela-payments</strong><br>
-        3. Permissions → <strong>Contents: Read and Write</strong> (nothing else)<br>
-        4. Copy &amp; paste it below. Saved only on this device.
-      </div>
-      <div class="field">
-        <label>Fine-grained Token</label>
-        <input type="password" id="writeTokenInput" placeholder="github_pat_…" autocomplete="off" spellcheck="false" />
-      </div>
-      <button class="btn btn-gold" id="saveTokenBtn">Save Token</button>
-      <button class="btn btn-ghost" id="cancelTokenBtn">Cancel</button>
-      <div class="feedback" id="tokenFeedback"></div>
     </div>
   </div>
 </div>
@@ -902,17 +901,11 @@ function showAuth() {
 
 function showEdit() {
   document.getElementById('panelAuth').style.display  = 'none';
-  document.getElementById('panelToken').style.display = 'none';
   document.getElementById('panelEdit').style.display  = 'block';
+  // Show token section if no token saved yet
+  document.getElementById('tokenSection').style.display = WRITE_TOKEN() ? 'none' : 'block';
+  document.getElementById('tokenFeedback').className = 'feedback';
   populateEdit();
-}
-
-function showTokenSetup() {
-  document.getElementById('panelAuth').style.display  = 'none';
-  document.getElementById('panelEdit').style.display  = 'none';
-  document.getElementById('panelToken').style.display = 'block';
-  document.getElementById('tokenFeedback').className  = 'feedback';
-  document.getElementById('writeTokenInput').value    = '';
 }
 
 function populateEdit() {
@@ -972,7 +965,8 @@ document.getElementById('loginBtn').addEventListener('click', () => {
   if (entered === ADMIN_PASSWORD) {
     state.admin = true;
     fab.classList.add('on');
-    if (!WRITE_TOKEN()) { showTokenSetup(); } else { showEdit(); render(); }
+    showEdit();
+    render();
   } else {
     fb.className = 'feedback err';
     fb.textContent = 'Wrong password.';
@@ -1013,26 +1007,28 @@ document.getElementById('addMonthModalBtn').addEventListener('click', () => {
 document.getElementById('saveTokenBtn').addEventListener('click', async () => {
   const tok = document.getElementById('writeTokenInput').value.trim();
   const fb  = document.getElementById('tokenFeedback');
-  if (!tok) { fb.className = 'feedback err'; fb.textContent = 'Paste your token first.'; return; }
-  // Quick verify
   const btn = document.getElementById('saveTokenBtn');
-  btn.textContent = 'Verifying…'; btn.disabled = true;
+  if (!tok) { fb.className = 'feedback err'; fb.textContent = 'Paste your token first.'; return; }
+  btn.textContent = 'Verifying…'; btn.disabled = true; fb.className = 'feedback';
   try {
     const r = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}`,
       { headers: { Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json' } });
-    if (!r.ok) throw new Error('Token rejected by GitHub.');
+    if (!r.ok) throw new Error('Token not accepted. Check permissions.');
     localStorage.setItem('rc_write_token', tok);
-    fb.className = 'feedback ok'; fb.textContent = '✓ Token saved! You\'re all set.';
-    setTimeout(() => { showEdit(); render(); }, 900);
+    fb.className = 'feedback ok'; fb.textContent = '✓ Token saved! You can now edit payments.';
+    document.getElementById('tokenSection').style.display = 'none';
   } catch(e) {
     fb.className = 'feedback err'; fb.textContent = e.message;
   } finally {
-    btn.textContent = 'Save Token'; btn.disabled = false;
+    btn.textContent = '🔑 Save Token'; btn.disabled = false;
   }
 });
 
-document.getElementById('cancelTokenBtn').addEventListener('click', () => {
-  if (WRITE_TOKEN()) { showEdit(); } else { closeModal(); }
+document.getElementById('changeTokenBtn').addEventListener('click', () => {
+  const ts = document.getElementById('tokenSection');
+  ts.style.display = ts.style.display === 'none' ? 'block' : 'none';
+  document.getElementById('writeTokenInput').value = '';
+  document.getElementById('tokenFeedback').className = 'feedback';
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
