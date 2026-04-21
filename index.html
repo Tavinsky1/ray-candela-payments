@@ -447,7 +447,45 @@
     }
     .add-month-hint:hover { border-color: var(--gold); color: var(--gold); }
 
-    /* ── RESPONSIVE ──────────────────────────────────────── */
+    /* ── MEMBER MANAGEMENT ───────────────────────────────── */
+    .member-manage-list { margin-bottom: 12px; }
+    .member-manage-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 9px 12px;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .member-remove-btn {
+      background: none; border: none;
+      color: var(--red); font-size: 17px;
+      cursor: pointer; line-height: 1; padding: 0 4px;
+    }
+    .add-member-row { display: flex; gap: 8px; }
+    .add-member-row input {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 11px 12px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      outline: none;
+    }
+    .add-member-row input:focus { border-color: var(--gold); }
+    .add-member-btn {
+      padding: 11px 16px;
+      background: var(--gold); border: none; border-radius: 11px;
+      font-family: 'Raleway', sans-serif; font-weight: 700; font-size: 13px;
+      color: #000; cursor: pointer; white-space: nowrap;
+    }
+    .section-divider {
+      border: none; border-top: 1px solid var(--border);
+      margin: 18px 0;
+    }
     @media (max-width: 380px) {
       .header h1 { font-size: 26px; letter-spacing: 4px; }
       .member-avatar { width: 46px; height: 46px; font-size: 14px; }
@@ -528,7 +566,18 @@
 
       <button class="btn btn-gold" id="saveBtn">💾 Save changes</button>
       <button class="btn btn-ghost" id="addMonthModalBtn">＋ Add current month</button>
-      <button class="btn btn-ghost" id="changeTokenBtn" style="margin-top:10px;font-size:11px;opacity:0.6">🔑 Update write token</button>
+
+      <hr class="section-divider">
+      <h2 style="font-size:16px;margin-bottom:4px">👥 Manage Members</h2>
+      <p class="modal-sub" style="margin-bottom:12px">Add or remove members from the board.</p>
+      <div class="member-manage-list" id="memberManageList"></div>
+      <div class="add-member-row">
+        <input type="text" id="newMemberInput" placeholder="Member name…" maxlength="30" autocomplete="off" />
+        <button class="add-member-btn" id="addMemberBtn">+ Add</button>
+      </div>
+
+      <hr class="section-divider">
+      <button class="btn btn-ghost" id="changeTokenBtn" style="font-size:11px;opacity:0.6">🔑 Update write token</button>
       <button class="btn btn-danger" id="logoutBtn">Log out</button>
       <div class="feedback" id="saveFeedback"></div>
     </div>
@@ -552,10 +601,14 @@ const ADMIN_PASSWORD = 'raycandela';
 // Write token (stored as char codes — functionally identical)
 const WRITE_TOKEN = () => [103,105,116,104,117,98,95,112,97,116,95,49,49,65,54,87,54,90,67,89,48,65,54,106,107,86,72,107,101,51,89,109,55,95,53,69,122,113,73,53,70,113,57,72,55,66,105,115,79,103,111,52,101,87,119,53,57,84,81,106,104,87,89,78,50,69,87,115,73,113,113,55,56,110,73,57,101,51,79,70,75,88,70,55,53,102,81,68,69,100,50,108,85].map(c=>String.fromCharCode(c)).join('');
 
-const MEMBERS = [
+// Default member list — overridden by data.config.members if present
+const MEMBERS_DEFAULT = [
   'Agustín', 'Agus', 'Eric', 'Ludwig',
   'Juan Pablo', 'Renzo', 'Adrian', 'Tavo'
 ];
+function getMembers() {
+  return (state.data && state.data.config && state.data.config.members) || MEMBERS_DEFAULT;
+}
 
 const MONTHS_EN = [
   'January','February','March','April','May','June',
@@ -630,8 +683,8 @@ function initials(name) {
   const p = name.trim().split(' ');
   return p.length > 1 ? (p[0][0]+p[1][0]).toUpperCase() : name.slice(0,2).toUpperCase();
 }
-function paidCount(mo) { return MEMBERS.filter(m => mo[m]).length; }
-function ensureMembers(mo) { MEMBERS.forEach(m => { if (!(m in mo)) mo[m] = false; }); }
+function paidCount(mo) { return getMembers().filter(m => mo[m]).length; }
+function ensureMembers(mo) { getMembers().forEach(m => { if (!(m in mo)) mo[m] = false; }); }
 
 /* ════════════════════════════════════════════════════════
    RENDER HELPERS
@@ -653,7 +706,7 @@ function chipHTML(name, paid, monthKey, clickable) {
 }
 
 function gridHTML(mo, key, clickable) {
-  return MEMBERS.map(n => chipHTML(n, !!mo[n], key, clickable)).join('');
+  return getMembers().map(n => chipHTML(n, !!mo[n], key, clickable)).join('');
 }
 
 function progressHTML(paid, total) {
@@ -676,7 +729,7 @@ function render() {
   const cfg      = data.config || {};
   const cost     = cfg.roomCost || 0;
   const currency = cfg.currency || '€';
-  const ppm      = MEMBERS.length > 0 ? cost / MEMBERS.length : 0;
+  const members  = getMembers();
   const cur      = nowKey();
   const sorted   = Object.keys(data.payments).sort().reverse();
 
@@ -695,8 +748,8 @@ function render() {
     ensureMembers(mo);
     const pc      = paidCount(mo);
     const [yr, mn] = cur.split('-');
-    const allPaid  = pc === MEMBERS.length;
-    const pct      = Math.round(pc / MEMBERS.length * 100);
+    const allPaid  = pc === members.length;
+    const pct      = Math.round(pc / members.length * 100);
 
     html += `
     <div class="current-card" id="card-${cur}">
@@ -705,14 +758,14 @@ function render() {
           <div class="current-month-name">${MONTHS_EN[+mn-1]}</div>
           <div class="current-month-year">${yr}</div>
         </div>
-        <span class="live-badge">${pc}/${MEMBERS.length} paid</span>
+        <span class="live-badge">${pc}/${members.length} paid</span>
       </div>
       <div class="progress-area">
         <div class="progress-meta">
-          <span class="progress-amount">${pc} of ${MEMBERS.length} members paid</span>
+          <span class="progress-amount">${pc} of ${members.length} members paid</span>
           <span class="progress-target">${pct}%</span>
         </div>
-        ${progressHTML(pc, MEMBERS.length)}
+        ${progressHTML(pc, members.length)}
       </div>
       <div class="members-grid" id="grid-${cur}" style="margin-top:4px">
         ${gridHTML(mo, cur, state.admin)}
@@ -732,7 +785,7 @@ function render() {
     html += `<div class="section-label" style="margin-top:20px">Member Status</div>`;
     html += `<div class="member-summary-grid">`;
 
-    MEMBERS.forEach(name => {
+    members.forEach(name => {
       const ini = initials(name);
       const fn  = name.split(' ')[0];
 
@@ -784,7 +837,7 @@ function render() {
       const mData = data.payments[key];
       ensureMembers(mData);
       const pc   = paidCount(mData);
-      const pct  = Math.round(pc / MEMBERS.length * 100);
+      const pct  = Math.round(pc / members.length * 100);
       const open = _open.has(key);
       html += `
       <div class="month-row${open ? ' open' : ''}" id="row-${key}">
@@ -792,7 +845,7 @@ function render() {
           <span class="month-row-name">${fmtKey(key)}</span>
           <div class="month-row-right">
             <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
-            <span class="month-count">${pc}/${MEMBERS.length}</span>
+            <span class="month-count">${pc}/${members.length}</span>
             <span class="chevron">▾</span>
           </div>
         </div>
@@ -843,7 +896,7 @@ function tapMember(monthKey, encodedName) {
 function addMonth(key) {
   if (state.data.payments[key]) return;
   state.data.payments[key] = {};
-  MEMBERS.forEach(m => state.data.payments[key][m] = false);
+  getMembers().forEach(m => state.data.payments[key][m] = false);
   render();
 }
 
@@ -882,6 +935,7 @@ function showEdit() {
   document.getElementById('panelEdit').style.display  = 'block';
   document.getElementById('tokenSection').style.display = 'none';
   populateEdit();
+  renderMemberManageList();
 }
 
 function populateEdit() {
@@ -899,7 +953,7 @@ function renderEditGrid(monthKey) {
   const grid = document.getElementById('editGrid');
   if (!grid || !state.data?.payments?.[monthKey]) return;
   const mo = state.data.payments[monthKey];
-  grid.innerHTML = MEMBERS.map(name => {
+  grid.innerHTML = getMembers().map(name => {
     const paid = !!mo[name];
     const ini  = initials(name);
     const ename = encodeURIComponent(name);
@@ -922,6 +976,46 @@ function tapEditMember(monthKey, encodedName) {
   const grid = document.getElementById(`grid-${monthKey}`);
   if (grid) grid.innerHTML = gridHTML(state.data.payments[monthKey], monthKey, true);
 }
+
+function renderMemberManageList() {
+  const list = document.getElementById('memberManageList');
+  if (!list) return;
+  const members = getMembers();
+  list.innerHTML = members.map(name => `
+    <div class="member-manage-item">
+      <span>${name}</span>
+      <button class="member-remove-btn" onclick="removeMember('${encodeURIComponent(name)}')" title="Remove">✕</button>
+    </div>`).join('');
+}
+
+function removeMember(encodedName) {
+  const name = decodeURIComponent(encodedName);
+  const members = getMembers();
+  if (members.length <= 1) { toast('⚠️ Need at least one member', true); return; }
+  state.data.config.members = members.filter(m => m !== name);
+  Object.values(state.data.payments).forEach(mo => { delete mo[name]; });
+  renderMemberManageList();
+  populateEdit();
+  render();
+}
+
+document.getElementById('addMemberBtn').addEventListener('click', () => {
+  const input = document.getElementById('newMemberInput');
+  const name  = input.value.trim();
+  if (!name) return;
+  const members = getMembers();
+  if (members.includes(name)) { toast('Already on the list', true); return; }
+  state.data.config.members = [...members, name];
+  Object.keys(state.data.payments).forEach(k => { state.data.payments[k][name] = false; });
+  input.value = '';
+  renderMemberManageList();
+  populateEdit();
+  render();
+});
+
+document.getElementById('newMemberInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('addMemberBtn').click();
+});
 
 /* ════════════════════════════════════════════════════════
    EVENT LISTENERS
@@ -974,7 +1068,7 @@ document.getElementById('addMonthModalBtn').addEventListener('click', () => {
   const key = nowKey();
   if (!state.data.payments[key]) {
     state.data.payments[key] = {};
-    MEMBERS.forEach(m => state.data.payments[key][m] = false);
+    getMembers().forEach(m => state.data.payments[key][m] = false);
   }
   populateEdit();
   render();
@@ -1034,6 +1128,20 @@ async function init() {
 
   try {
     state.data = await ghFetch();
+
+    // Ensure config.members exists (migrate from hardcoded list on first load)
+    if (!state.data.config) state.data.config = {};
+    if (!state.data.config.members) {
+      state.data.config.members = [...MEMBERS_DEFAULT];
+    }
+
+    // Auto-create current month in memory (not saved yet) so it always shows
+    const cur = nowKey();
+    if (!state.data.payments[cur]) {
+      state.data.payments[cur] = {};
+      getMembers().forEach(m => state.data.payments[cur][m] = false);
+    }
+
     render();
   } catch(e) {
     document.getElementById('app').innerHTML = `
