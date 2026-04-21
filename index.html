@@ -636,9 +636,9 @@ const state = {
 async function ghFetch() {
   const res = await fetch(
     `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}?ref=${GH_BRANCH}&_=${Date.now()}`,
-    { cache: 'no-store', headers: { Accept: 'application/vnd.github+json', 'Cache-Control': 'no-cache' } }
+    { headers: { Accept: 'application/vnd.github+json' } }
   );
-  if (!res.ok) throw new Error(`GitHub responded ${res.status}. Does the repo exist and is it public?`);
+  if (!res.ok) throw new Error(`GitHub responded ${res.status}`);
   const j = await res.json();
   state.sha = j.sha;
   return JSON.parse(atob(j.content.replace(/[\n\r]/g, '')));
@@ -646,8 +646,12 @@ async function ghFetch() {
 
 async function ghSave(data) {
   const tok = WRITE_TOKEN();
-  if (!tok) throw new Error('Write token not set. Tap ⚙ → log in → "Set Write Token".');
-  const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+  if (!tok) throw new Error('No write token.');
+  // Safe UTF-8 → base64 (avoids garbling non-ASCII chars like €)
+  const json    = JSON.stringify(data, null, 2);
+  const bytes   = new TextEncoder().encode(json);
+  const binStr  = Array.from(bytes, b => String.fromCharCode(b)).join('');
+  const content = btoa(binStr);
   const res = await fetch(
     `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`,
     {
