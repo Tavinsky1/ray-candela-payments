@@ -487,6 +487,26 @@
       <button class="btn btn-danger" id="logoutBtn">Log out (Adrian)</button>
       <div class="feedback" id="saveFeedback"></div>
     </div>
+
+    <!-- ── TOKEN SETUP PANEL ── -->
+    <div id="panelToken" style="display:none">
+      <h2>🔑 One-time Setup</h2>
+      <p class="modal-sub">Paste your fine-grained GitHub token below (Tavo only, once).</p>
+      <div class="hint-box">
+        <strong>Get a fine-grained token:</strong><br>
+        1. Go to <a href="https://github.com/settings/tokens?type=beta" target="_blank">github.com/settings/tokens?type=beta</a><br>
+        2. Generate new token → set <strong>Repository access</strong> → Only <strong>ray-candela-payments</strong><br>
+        3. Permissions → <strong>Contents: Read and Write</strong> (nothing else)<br>
+        4. Copy &amp; paste it below. Saved only on this device.
+      </div>
+      <div class="field">
+        <label>Fine-grained Token</label>
+        <input type="password" id="writeTokenInput" placeholder="github_pat_…" autocomplete="off" spellcheck="false" />
+      </div>
+      <button class="btn btn-gold" id="saveTokenBtn">Save Token</button>
+      <button class="btn btn-ghost" id="cancelTokenBtn">Cancel</button>
+      <div class="feedback" id="tokenFeedback"></div>
+    </div>
   </div>
 </div>
 
@@ -506,14 +526,9 @@ const GH_BRANCH = 'main';
 // After changing it, commit & push (no need to touch GitHub tokens).
 const ADMIN_PASSWORD = 'raycandela';
 
-// ── WRITE TOKEN (Tavo only, set once) ────────────────────
-// Create a Fine-Grained Token at: https://github.com/settings/tokens?type=beta
-//   • Resource owner: Tavinsky1
-//   • Repository access: Only select → ray-candela-payments
-//   • Permissions → Contents: Read and Write
-// Paste the token below between the quotes.
-// This token can ONLY read/write data.json in this one repo. Nothing else.
-const WRITE_TOKEN = '';
+// Write token is stored in localStorage (set once via the admin panel).
+// It is NEVER hardcoded here. Use a fine-grained token scoped to this repo only.
+const WRITE_TOKEN = () => localStorage.getItem('rc_write_token') || '';
 
 const MEMBERS = [
   'Agustín', 'Agus', 'Eric', 'Ludwig',
@@ -549,14 +564,15 @@ async function ghFetch() {
 }
 
 async function ghSave(data) {
-  if (!WRITE_TOKEN) throw new Error('Write token not configured. Ask Tavo to add it.');
+  const tok = WRITE_TOKEN();
+  if (!tok) throw new Error('Write token not set. Tap ⚙ → log in → "Set Write Token".');
   const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
   const res = await fetch(
     `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`,
     {
       method: 'PUT',
       headers: {
-        Authorization: `Bearer ${WRITE_TOKEN}`,
+        Authorization: `Bearer ${tok}`,
         'Content-Type': 'application/json',
         Accept: 'application/vnd.github+json'
       },
@@ -885,9 +901,18 @@ function showAuth() {
 }
 
 function showEdit() {
-  document.getElementById('panelAuth').style.display = 'none';
-  document.getElementById('panelEdit').style.display = 'block';
+  document.getElementById('panelAuth').style.display  = 'none';
+  document.getElementById('panelToken').style.display = 'none';
+  document.getElementById('panelEdit').style.display  = 'block';
   populateEdit();
+}
+
+function showTokenSetup() {
+  document.getElementById('panelAuth').style.display  = 'none';
+  document.getElementById('panelEdit').style.display  = 'none';
+  document.getElementById('panelToken').style.display = 'block';
+  document.getElementById('tokenFeedback').className  = 'feedback';
+  document.getElementById('writeTokenInput').value    = '';
 }
 
 function populateEdit() {
@@ -945,15 +970,9 @@ document.getElementById('loginBtn').addEventListener('click', () => {
   const fb      = document.getElementById('authFeedback');
   if (!entered) { fb.className = 'feedback err'; fb.textContent = 'Please enter the password.'; return; }
   if (entered === ADMIN_PASSWORD) {
-    if (!WRITE_TOKEN) {
-      fb.className = 'feedback err';
-      fb.textContent = 'Write token not set yet — ask Tavo to configure it.';
-      return;
-    }
     state.admin = true;
     fab.classList.add('on');
-    showEdit();
-    render();
+    if (!WRITE_TOKEN()) { showTokenSetup(); } else { showEdit(); render(); }
   } else {
     fb.className = 'feedback err';
     fb.textContent = 'Wrong password.';
@@ -989,6 +1008,31 @@ document.getElementById('addMonthModalBtn').addEventListener('click', () => {
   }
   populateEdit();
   render();
+});
+
+document.getElementById('saveTokenBtn').addEventListener('click', async () => {
+  const tok = document.getElementById('writeTokenInput').value.trim();
+  const fb  = document.getElementById('tokenFeedback');
+  if (!tok) { fb.className = 'feedback err'; fb.textContent = 'Paste your token first.'; return; }
+  // Quick verify
+  const btn = document.getElementById('saveTokenBtn');
+  btn.textContent = 'Verifying…'; btn.disabled = true;
+  try {
+    const r = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}`,
+      { headers: { Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json' } });
+    if (!r.ok) throw new Error('Token rejected by GitHub.');
+    localStorage.setItem('rc_write_token', tok);
+    fb.className = 'feedback ok'; fb.textContent = '✓ Token saved! You\'re all set.';
+    setTimeout(() => { showEdit(); render(); }, 900);
+  } catch(e) {
+    fb.className = 'feedback err'; fb.textContent = e.message;
+  } finally {
+    btn.textContent = 'Save Token'; btn.disabled = false;
+  }
+});
+
+document.getElementById('cancelTokenBtn').addEventListener('click', () => {
+  if (WRITE_TOKEN()) { showEdit(); } else { closeModal(); }
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
