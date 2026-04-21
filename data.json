@@ -1,11 +1,11 @@
 {
   "config": {
     "roomCost": 400,
-    "currency": "€"
+    "currency": "â¬"
   },
   "payments": {
     "2026-01": {
-      "Agustín": true,
+      "AgustÃ­n": true,
       "Agus": true,
       "Eric": true,
       "Ludwig": false,
@@ -15,7 +15,7 @@
       "Tavo": true
     },
     "2026-02": {
-      "Agustín": true,
+      "AgustÃ­n": true,
       "Agus": false,
       "Eric": true,
       "Ludwig": true,
@@ -25,7 +25,7 @@
       "Tavo": true
     },
     "2026-03": {
-      "Agustín": true,
+      "AgustÃ­n": true,
       "Agus": true,
       "Eric": false,
       "Ludwig": true,
@@ -35,14 +35,15 @@
       "Tavo": false
     },
     "2026-04": {
-      "Agustín": false,
+      "AgustÃ­n": false,
       "Agus": false,
       "Eric": false,
       "Ludwig": false,
       "Juan Pablo": false,
       "Renzo": false,
-      "Adrian": false,
-      "Tavo": false
+      "Adrian": true,
+      "Tavo": false,
+      "Agustín": false
     }
   }
 }
