@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Ray Candela – Pagos del Salón</title>
+  <title>Ray Candela – Room Payments</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -434,13 +434,13 @@
 <header class="header">
   <span class="header-icon">🎸</span>
   <h1>Ray Candela</h1>
-  <div class="header-sub">Control de Pagos · Salón de Ensayo</div>
+  <div class="header-sub">Payment Tracker · Rehearsal Room</div>
 </header>
 
 <div class="container" id="app">
   <div class="loading-state">
     <div class="spinner"></div>
-    Cargando datos…
+    Loading data…
   </div>
 </div>
 
@@ -454,47 +454,47 @@
 
     <!-- ── AUTH PANEL ── -->
     <div id="panelAuth">
-      <h2>🔐 Acceso Admin</h2>
-      <p class="modal-sub">Solo Adrian puede modificar los pagos.</p>
+      <h2>🔐 Admin Access</h2>
+      <p class="modal-sub">Only Adrian can edit payments.</p>
 
       <div class="hint-box" id="hintBox">
-        <strong>Cómo obtener tu GitHub Token (una sola vez):</strong><br>
-        1. Entrá a <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a><br>
-        2. Nombre: <strong>Ray Candela Pagos</strong><br>
-        3. Expiración: Sin expiración<br>
-        4. Tildá el permiso: <strong>repo</strong><br>
-        5. Generalo y pegalo abajo.<br><br>
-        <em>Tu token se guarda solo en este dispositivo.</em>
+        <strong>How to get your GitHub Token (one-time setup):</strong><br>
+        1. Go to <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a><br>
+        2. Name: <strong>Ray Candela Payments</strong><br>
+        3. Expiration: No expiration<br>
+        4. Check the permission: <strong>repo</strong><br>
+        5. Generate it and paste it below.<br><br>
+        <em>Your token is stored only on this device.</em>
       </div>
 
       <div class="field">
         <label>GitHub Personal Access Token</label>
         <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false" />
       </div>
-      <button class="btn btn-gold" id="loginBtn">Ingresar</button>
-      <button class="btn btn-ghost" id="cancelAuthBtn">Cancelar</button>
+      <button class="btn btn-gold" id="loginBtn">Log In</button>
+      <button class="btn btn-ghost" id="cancelAuthBtn">Cancel</button>
       <div class="feedback" id="authFeedback"></div>
     </div>
 
     <!-- ── EDIT PANEL ── -->
     <div id="panelEdit" style="display:none">
-      <h2>✏️ Editar Pagos</h2>
-      <p class="modal-sub">Tocá los avatares para marcar/desmarcar. Guardá cuando termines.</p>
+      <h2>✏️ Edit Payments</h2>
+      <p class="modal-sub">Tap avatars to mark/unmark. Save when done.</p>
 
       <div class="field">
-        <label>Mes</label>
+        <label>Month</label>
         <select id="editMonthSel"></select>
       </div>
       <div id="editGrid" class="members-grid" style="margin-bottom:20px"></div>
 
       <div class="field">
-        <label>Costo del salón ese mes (€)</label>
+        <label>Room cost that month (€)</label>
         <input type="number" id="costInput" min="0" placeholder="400" />
       </div>
 
-      <button class="btn btn-gold" id="saveBtn">💾 Guardar cambios</button>
-      <button class="btn btn-ghost" id="addMonthModalBtn">＋ Agregar mes actual</button>
-      <button class="btn btn-danger" id="logoutBtn">Cerrar sesión de Adrian</button>
+      <button class="btn btn-gold" id="saveBtn">💾 Save changes</button>
+      <button class="btn btn-ghost" id="addMonthModalBtn">＋ Add current month</button>
+      <button class="btn btn-danger" id="logoutBtn">Log out (Adrian)</button>
       <div class="feedback" id="saveFeedback"></div>
     </div>
   </div>
@@ -516,9 +516,9 @@ const MEMBERS = [
   'Juan Pablo', 'Renzo', 'Adrian', 'Tavo'
 ];
 
-const MONTHS_ES = [
-  'Enero','Febrero','Marzo','Abril','Mayo','Junio',
-  'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
+const MONTHS_EN = [
+  'January','February','March','April','May','June',
+  'July','August','September','October','November','December'
 ];
 
 /* ════════════════════════════════════════════════════════
@@ -541,7 +541,7 @@ async function ghFetch() {
     `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}?ref=${GH_BRANCH}&_=${Date.now()}`,
     { headers }
   );
-  if (!res.ok) throw new Error(`GitHub respondió ${res.status}. ¿El repo existe y es público?`);
+  if (!res.ok) throw new Error(`GitHub responded ${res.status}. Does the repo exist and is it public?`);
   const j = await res.json();
   state.sha = j.sha;
   return JSON.parse(atob(j.content.replace(/[\n\r]/g, '')));
@@ -559,7 +559,7 @@ async function ghSave(data) {
         Accept: 'application/vnd.github+json'
       },
       body: JSON.stringify({
-        message: '💰 Actualización de pagos',
+        message: '💰 Payment update',
         content,
         sha: state.sha,
         branch: GH_BRANCH
@@ -587,11 +587,11 @@ async function ghVerify(token) {
    ════════════════════════════════════════════════════════ */
 function fmtKey(key) {
   const [y, m] = key.split('-');
-  return `${MONTHS_ES[+m - 1]} ${y}`;
+  return `${MONTHS_EN[+m - 1]} ${y}`;
 }
 function fmtKeyShort(key) {
   const [y, m] = key.split('-');
-  return `${MONTHS_ES[+m - 1].slice(0,3)} '${y.slice(2)}`;
+  return `${MONTHS_EN[+m - 1].slice(0,3)} '${y.slice(2)}`;
 }
 function nowKey() {
   const d = new Date();
@@ -656,11 +656,11 @@ function render() {
 
   /* Admin banner */
   html += `<div class="admin-banner${state.admin ? ' show' : ''}">
-    ✏️ Modo Admin activo — tocá los avatares para cambiar el estado
+    ✏️ Admin mode active — tap avatars to toggle payment status
   </div>`;
 
   /* ── CURRENT MONTH ── */
-  html += `<div class="section-label" style="margin-top:4px">Mes en curso</div>`;
+  html += `<div class="section-label" style="margin-top:4px">Current Month</div>`;
   const mo = data.payments[cur];
   if (mo) {
     ensureMembers(mo);
@@ -674,12 +674,12 @@ function render() {
           <div class="current-month-name">${MONTHS_ES[+mn-1]}</div>
           <div class="current-month-year">${yr}</div>
         </div>
-        <span class="live-badge">En curso</span>
+        <span class="live-badge">Live</span>
       </div>
       <div class="progress-area" id="prog-${cur}">
         <div class="progress-meta">
-          <span class="progress-amount" id="prog-amt-${cur}">${currency}${paid.toFixed(0)} recaudados</span>
-          <span class="progress-target">Meta: ${currency}${cost}</span>
+          <span class="progress-amount" id="prog-amt-${cur}">${currency}${paid.toFixed(0)} collected</span>
+          <span class="progress-target">Target: ${currency}${cost}</span>
         </div>
         ${progressHTML(paid, cost)}
       </div>
@@ -691,8 +691,8 @@ function render() {
     html += `
     <div class="current-card" style="text-align:center;padding:40px 20px">
       <div style="font-size:38px;margin-bottom:12px">📅</div>
-      <div style="color:var(--muted2);font-size:14px">${fmtKey(cur)} todavía no tiene datos.</div>
-      ${state.admin ? `<div class="add-month-hint" style="display:inline-block;margin-top:16px;padding:9px 22px" onclick="addMonth('${cur}')">＋ Agregar ${fmtKey(cur)}</div>` : ''}
+      <div style="color:var(--muted2);font-size:14px">${fmtKey(cur)} has no data yet.</div>
+      ${state.admin ? `<div class="add-month-hint" style="display:inline-block;margin-top:16px;padding:9px 22px" onclick="addMonth('${cur}')">＋ Add ${fmtKey(cur)}</div>` : ''}
     </div>`;
   }
 
@@ -704,15 +704,15 @@ function render() {
     <div class="stats-row" style="margin-top:20px">
       <div class="stat-box">
         <div class="stat-val" style="color:var(--gold)">${sorted.length}</div>
-        <div class="stat-lbl">Meses</div>
+        <div class="stat-lbl">Months</div>
       </div>
       <div class="stat-box">
         <div class="stat-val" style="color:var(--green)">${totalPaid}</div>
-        <div class="stat-lbl">Pagos totales</div>
+        <div class="stat-lbl">Total payments</div>
       </div>
       <div class="stat-box">
         <div class="stat-val" style="color:var(--text)">${completedMos}</div>
-        <div class="stat-lbl">Completos</div>
+        <div class="stat-lbl">Complete</div>
       </div>
     </div>`;
   }
@@ -720,7 +720,7 @@ function render() {
   /* ── HISTORY ── */
   const past = sorted.filter(k => k !== cur);
   if (past.length > 0) {
-    html += `<div class="section-label" style="margin-top:8px">Historial</div>`;
+    html += `<div class="section-label" style="margin-top:8px">History</div>`;
     past.forEach(key => {
       const mData = data.payments[key];
       ensureMembers(mData);
@@ -751,7 +751,7 @@ function render() {
   /* ── CHART ── */
   if (sorted.length > 1) {
     html += `
-    <div class="section-label" style="margin-top:8px">Participación por mes</div>
+    <div class="section-label" style="margin-top:8px">Participation per month</div>
     <div class="chart-wrap">
       <canvas id="chart" height="160"></canvas>
     </div>`;
@@ -789,7 +789,7 @@ function render() {
         responsive: true,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: c => `${c.parsed.y} de ${total} pagaron` } }
+          tooltip: { callbacks: { label: c => `${c.parsed.y} of ${total} paid` } }
         },
         scales: {
           y: {
@@ -839,14 +839,14 @@ function tapMember(monthKey, encodedName) {
     const fill = document.querySelector(`#card-${monthKey} .progress-fill`);
     const amt  = document.getElementById(`prog-amt-${monthKey}`);
     if (fill) fill.style.width = pct + '%';
-    if (amt)  amt.textContent = `${cfg.currency || '€'}${paid.toFixed(0)} recaudados`;
+    if (amt)  amt.textContent = `${cfg.currency || '€'}${paid.toFixed(0)} collected`;
   }
 
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(async () => {
     try {
       await ghSave(state.data);
-      toast('✓ Guardado', false);
+      toast('✓ Saved', false);
     } catch(e) {
       toast('❌ ' + e.message, true);
     }
@@ -954,9 +954,9 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   const token = document.getElementById('tokenInput').value.trim();
   const fb    = document.getElementById('authFeedback');
   const btn   = document.getElementById('loginBtn');
-  if (!token) { fb.className = 'feedback err'; fb.textContent = 'Ingresá tu token.'; return; }
+  if (!token) { fb.className = 'feedback err'; fb.textContent = 'Please enter your token.'; return; }
 
-  btn.textContent = 'Verificando…'; btn.disabled = true; fb.className = 'feedback';
+  btn.textContent = 'Verifying…'; btn.disabled = true; fb.className = 'feedback';
   try {
     if (await ghVerify(token)) {
       state.token = token;
@@ -967,12 +967,12 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
       render();
     } else {
       fb.className = 'feedback err';
-      fb.textContent = 'Token inválido o sin acceso al repo.';
+      fb.textContent = 'Invalid token or no access to the repo.';
     }
   } catch {
-    fb.className = 'feedback err'; fb.textContent = 'Error de red.';
+    fb.className = 'feedback err'; fb.textContent = 'Network error.';
   } finally {
-    btn.textContent = 'Ingresar'; btn.disabled = false;
+    btn.textContent = 'Log In'; btn.disabled = false;
   }
 });
 
@@ -984,15 +984,15 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     if (!state.data.config) state.data.config = {};
     state.data.config.roomCost = val;
   }
-  btn.textContent = 'Guardando…'; btn.disabled = true; fb.className = 'feedback';
+  btn.textContent = 'Saving…'; btn.disabled = true; fb.className = 'feedback';
   try {
     await ghSave(state.data);
-    fb.className = 'feedback ok'; fb.textContent = '✓ Guardado correctamente.';
+    fb.className = 'feedback ok'; fb.textContent = '✓ Saved successfully.';
     render();
   } catch(e) {
     fb.className = 'feedback err'; fb.textContent = '❌ ' + e.message;
   } finally {
-    btn.textContent = '💾 Guardar cambios'; btn.disabled = false;
+    btn.textContent = '💾 Save changes'; btn.disabled = false;
   }
 });
 
@@ -1023,11 +1023,11 @@ async function init() {
     document.getElementById('app').innerHTML = `
     <div style="padding:60px 20px;text-align:center">
       <div style="font-size:40px;margin-bottom:14px">⚙️</div>
-      <div style="font-family:Raleway,sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px">Configuración pendiente</div>
+      <div style="font-family:Raleway,sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px">Setup needed</div>
       <div style="font-size:13px;color:var(--muted2);line-height:1.8">
-        Abrí <strong style="color:var(--gold)">index.html</strong> y reemplazá<br>
+        Open <strong style="color:var(--gold)">index.html</strong> and replace<br>
         <code style="background:rgba(255,255,255,0.07);padding:3px 8px;border-radius:5px">'GITHUB_USERNAME'</code><br>
-        con tu usuario de GitHub.
+        with your GitHub username.
       </div>
     </div>`;
     return;
@@ -1045,9 +1045,9 @@ async function init() {
     document.getElementById('app').innerHTML = `
     <div style="padding:60px 20px;text-align:center">
       <div style="font-size:40px;margin-bottom:12px">⚠️</div>
-      <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px">No se pudo cargar</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px">Could not load data</div>
       <div style="font-size:13px;color:var(--muted2);margin-bottom:20px">${e.message}</div>
-      <button onclick="init()" style="padding:12px 28px;background:var(--gold);border:none;border-radius:11px;font-family:Raleway,sans-serif;font-weight:700;cursor:pointer;font-size:13px">
+      <button onclick="init()" style="padding:12px 28px;background:var(--gold);border:none;border-radius:11px;font-family:Raleway,sans-serif;font-weight:700;cursor:pointer;font-size:13px">Retry
         Reintentar
       </button>
     </div>`;
