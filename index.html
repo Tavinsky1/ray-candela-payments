@@ -455,21 +455,11 @@
     <!-- ── AUTH PANEL ── -->
     <div id="panelAuth">
       <h2>🔐 Admin Access</h2>
-      <p class="modal-sub">Only Adrian can edit payments.</p>
-
-      <div class="hint-box" id="hintBox">
-        <strong>How to get your GitHub Token (one-time setup):</strong><br>
-        1. Go to <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a><br>
-        2. Name: <strong>Ray Candela Payments</strong><br>
-        3. Expiration: No expiration<br>
-        4. Check the permission: <strong>repo</strong><br>
-        5. Generate it and paste it below.<br><br>
-        <em>Your token is stored only on this device.</em>
-      </div>
+      <p class="modal-sub">Enter the admin password to edit payments.</p>
 
       <div class="field">
-        <label>GitHub Personal Access Token</label>
-        <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false" />
+        <label>Admin Password</label>
+        <input type="password" id="passwordInput" placeholder="••••••••••" autocomplete="off" />
       </div>
       <button class="btn btn-gold" id="loginBtn">Log In</button>
       <button class="btn btn-ghost" id="cancelAuthBtn">Cancel</button>
@@ -504,12 +494,26 @@
 
 <script>
 /* ════════════════════════════════════════════════════════
-   CONFIG — fill GH_OWNER before deploying
+   CONFIG
    ════════════════════════════════════════════════════════ */
-const GH_OWNER  = 'Tavinsky1';            // ← your GitHub username
-const GH_REPO   = 'ray-candela-payments'; // ← repo name (must match)
+const GH_OWNER  = 'Tavinsky1';
+const GH_REPO   = 'ray-candela-payments';
 const GH_FILE   = 'data.json';
 const GH_BRANCH = 'main';
+
+// ── ADMIN PASSWORD ───────────────────────────────────────
+// Change this to whatever password you want Adrian to use.
+// After changing it, commit & push (no need to touch GitHub tokens).
+const ADMIN_PASSWORD = 'raycandela';
+
+// ── WRITE TOKEN (Tavo only, set once) ────────────────────
+// Create a Fine-Grained Token at: https://github.com/settings/tokens?type=beta
+//   • Resource owner: Tavinsky1
+//   • Repository access: Only select → ray-candela-payments
+//   • Permissions → Contents: Read and Write
+// Paste the token below between the quotes.
+// This token can ONLY read/write data.json in this one repo. Nothing else.
+const WRITE_TOKEN = '';
 
 const MEMBERS = [
   'Agustín', 'Agus', 'Eric', 'Ludwig',
@@ -527,19 +531,16 @@ const MONTHS_EN = [
 const state = {
   data:  null,
   sha:   null,
-  admin: false,
-  token: localStorage.getItem('rc_gh_token') || ''
+  admin: false
 };
 
 /* ════════════════════════════════════════════════════════
    GITHUB API
    ════════════════════════════════════════════════════════ */
 async function ghFetch() {
-  const headers = { Accept: 'application/vnd.github+json' };
-  if (state.token) headers.Authorization = `Bearer ${state.token}`;
   const res = await fetch(
     `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}?ref=${GH_BRANCH}&_=${Date.now()}`,
-    { headers }
+    { headers: { Accept: 'application/vnd.github+json' } }
   );
   if (!res.ok) throw new Error(`GitHub responded ${res.status}. Does the repo exist and is it public?`);
   const j = await res.json();
@@ -548,13 +549,14 @@ async function ghFetch() {
 }
 
 async function ghSave(data) {
+  if (!WRITE_TOKEN) throw new Error('Write token not configured. Ask Tavo to add it.');
   const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
   const res = await fetch(
     `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`,
     {
       method: 'PUT',
       headers: {
-        Authorization: `Bearer ${state.token}`,
+        Authorization: `Bearer ${WRITE_TOKEN}`,
         'Content-Type': 'application/json',
         Accept: 'application/vnd.github+json'
       },
@@ -572,14 +574,6 @@ async function ghSave(data) {
   }
   const result = await res.json();
   state.sha = result.content.sha;
-}
-
-async function ghVerify(token) {
-  const res = await fetch(
-    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}`,
-    { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' } }
-  );
-  return res.ok;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -886,12 +880,8 @@ function showAuth() {
   document.getElementById('panelAuth').style.display = 'block';
   document.getElementById('panelEdit').style.display = 'none';
   document.getElementById('authFeedback').className = 'feedback';
-  if (state.token) {
-    document.getElementById('tokenInput').value = state.token;
-    document.getElementById('hintBox').style.display = 'none';
-  } else {
-    document.getElementById('hintBox').style.display = 'block';
-  }
+  const pi = document.getElementById('passwordInput');
+  if (pi) pi.value = '';
 }
 
 function showEdit() {
@@ -950,29 +940,24 @@ fab.addEventListener('click', () => {
 overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
 document.getElementById('cancelAuthBtn').addEventListener('click', closeModal);
 
-document.getElementById('loginBtn').addEventListener('click', async () => {
-  const token = document.getElementById('tokenInput').value.trim();
-  const fb    = document.getElementById('authFeedback');
-  const btn   = document.getElementById('loginBtn');
-  if (!token) { fb.className = 'feedback err'; fb.textContent = 'Please enter your token.'; return; }
-
-  btn.textContent = 'Verifying…'; btn.disabled = true; fb.className = 'feedback';
-  try {
-    if (await ghVerify(token)) {
-      state.token = token;
-      localStorage.setItem('rc_gh_token', token);
-      state.admin = true;
-      fab.classList.add('on');
-      showEdit();
-      render();
-    } else {
+document.getElementById('loginBtn').addEventListener('click', () => {
+  const entered = document.getElementById('passwordInput').value;
+  const fb      = document.getElementById('authFeedback');
+  if (!entered) { fb.className = 'feedback err'; fb.textContent = 'Please enter the password.'; return; }
+  if (entered === ADMIN_PASSWORD) {
+    if (!WRITE_TOKEN) {
       fb.className = 'feedback err';
-      fb.textContent = 'Invalid token or no access to the repo.';
+      fb.textContent = 'Write token not set yet — ask Tavo to configure it.';
+      return;
     }
-  } catch {
-    fb.className = 'feedback err'; fb.textContent = 'Network error.';
-  } finally {
-    btn.textContent = 'Log In'; btn.disabled = false;
+    state.admin = true;
+    fab.classList.add('on');
+    showEdit();
+    render();
+  } else {
+    fb.className = 'feedback err';
+    fb.textContent = 'Wrong password.';
+    document.getElementById('passwordInput').value = '';
   }
 });
 
@@ -1008,8 +993,6 @@ document.getElementById('addMonthModalBtn').addEventListener('click', () => {
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
   state.admin = false;
-  state.token = '';
-  localStorage.removeItem('rc_gh_token');
   fab.classList.remove('on');
   closeModal();
   render();
@@ -1035,11 +1018,6 @@ async function init() {
 
   try {
     state.data = await ghFetch();
-    if (state.token) {
-      const ok = await ghVerify(state.token);
-      if (ok) { state.admin = true; fab.classList.add('on'); }
-      else    { state.token = ''; localStorage.removeItem('rc_gh_token'); }
-    }
     render();
   } catch(e) {
     document.getElementById('app').innerHTML = `
@@ -1048,7 +1026,6 @@ async function init() {
       <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px">Could not load data</div>
       <div style="font-size:13px;color:var(--muted2);margin-bottom:20px">${e.message}</div>
       <button onclick="init()" style="padding:12px 28px;background:var(--gold);border:none;border-radius:11px;font-family:Raleway,sans-serif;font-weight:700;cursor:pointer;font-size:13px">Retry
-        Reintentar
       </button>
     </div>`;
   }
