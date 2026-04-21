@@ -450,7 +450,7 @@
     /* ── MEMBER MANAGEMENT ───────────────────────────────── */
     .member-manage-list { margin-bottom: 12px; }
     .member-manage-item {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex; align-items: center; gap: 8px;
       background: rgba(255,255,255,0.03);
       border: 1px solid var(--border);
       border-radius: 9px;
@@ -458,12 +458,17 @@
       margin-bottom: 6px;
       font-size: 14px;
     }
-    .member-remove-btn {
+    .member-manage-item span { flex: 1; }
+    .member-action-btn {
       background: none; border: none;
-      color: var(--red); font-size: 17px;
-      cursor: pointer; line-height: 1; padding: 0 4px;
+      font-size: 15px; cursor: pointer; line-height: 1;
+      padding: 2px 5px; border-radius: 6px;
+      opacity: 0.7; transition: opacity 0.15s;
     }
-    .add-member-row { display: flex; gap: 8px; }
+    .member-action-btn:hover { opacity: 1; }
+    .member-action-btn.rename { color: var(--gold); }
+    .member-action-btn.remove { color: var(--red); }
+    .add-member-row { display: flex; gap: 8px; margin-top: 4px; }
     .add-member-row input {
       flex: 1;
       background: rgba(255,255,255,0.04);
@@ -568,12 +573,13 @@
       <button class="btn btn-ghost" id="addMonthModalBtn">＋ Add current month</button>
 
       <hr class="section-divider">
-      <h2 style="font-size:16px;margin-bottom:4px">👥 Manage Members</h2>
-      <p class="modal-sub" style="margin-bottom:12px">Add or remove members from the board.</p>
+      <h2 style="font-size:16px;margin-bottom:4px">👥 Band Members</h2>
+      <p class="modal-sub" style="margin-bottom:12px">Tap ✏️ to rename · 🗑 to remove.</p>
       <div class="member-manage-list" id="memberManageList"></div>
+      <p style="font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Add a new member</p>
       <div class="add-member-row">
-        <input type="text" id="newMemberInput" placeholder="Member name…" maxlength="30" autocomplete="off" />
-        <button class="add-member-btn" id="addMemberBtn">+ Add</button>
+        <input type="text" id="newMemberInput" placeholder="Full name…" maxlength="30" autocomplete="off" />
+        <button class="add-member-btn" id="addMemberBtn">＋ Add</button>
       </div>
 
       <hr class="section-divider">
@@ -630,7 +636,7 @@ const state = {
 async function ghFetch() {
   const res = await fetch(
     `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}?ref=${GH_BRANCH}&_=${Date.now()}`,
-    { headers: { Accept: 'application/vnd.github+json' } }
+    { cache: 'no-store', headers: { Accept: 'application/vnd.github+json', 'Cache-Control': 'no-cache' } }
   );
   if (!res.ok) throw new Error(`GitHub responded ${res.status}. Does the repo exist and is it public?`);
   const j = await res.json();
@@ -984,14 +990,33 @@ function renderMemberManageList() {
   list.innerHTML = members.map(name => `
     <div class="member-manage-item">
       <span>${name}</span>
-      <button class="member-remove-btn" onclick="removeMember('${encodeURIComponent(name)}')" title="Remove">✕</button>
+      <button class="member-action-btn rename" onclick="renameMember('${encodeURIComponent(name)}')" title="Rename">✏️</button>
+      <button class="member-action-btn remove" onclick="removeMember('${encodeURIComponent(name)}')" title="Remove member">🗑</button>
     </div>`).join('');
+}
+
+function renameMember(encodedOldName) {
+  const oldName = decodeURIComponent(encodedOldName);
+  const newName = prompt(`Rename "${oldName}" to:`, oldName);
+  if (!newName || newName.trim() === oldName) return;
+  const trimmed = newName.trim();
+  const members = getMembers();
+  if (members.includes(trimmed)) { toast('Name already exists', true); return; }
+  state.data.config.members = members.map(m => m === oldName ? trimmed : m);
+  Object.keys(state.data.payments).forEach(k => {
+    const mo = state.data.payments[k];
+    if (oldName in mo) { mo[trimmed] = mo[oldName]; delete mo[oldName]; }
+  });
+  renderMemberManageList();
+  populateEdit();
+  render();
 }
 
 function removeMember(encodedName) {
   const name = decodeURIComponent(encodedName);
   const members = getMembers();
   if (members.length <= 1) { toast('⚠️ Need at least one member', true); return; }
+  if (!confirm(`Remove "${name}" from the board?`)) return;
   state.data.config.members = members.filter(m => m !== name);
   Object.values(state.data.payments).forEach(mo => { delete mo[name]; });
   renderMemberManageList();
@@ -1045,6 +1070,7 @@ document.getElementById('loginBtn').addEventListener('click', () => {
 });
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
+  clearTimeout(_saveTimer); // cancel any pending auto-save to avoid SHA conflict
   const btn = document.getElementById('saveBtn');
   const fb  = document.getElementById('saveFeedback');
   const val = parseFloat(document.getElementById('costInput').value);
@@ -1055,7 +1081,7 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   btn.textContent = 'Saving…'; btn.disabled = true; fb.className = 'feedback';
   try {
     await ghSave(state.data);
-    fb.className = 'feedback ok'; fb.textContent = '✓ Saved successfully.';
+    fb.className = 'feedback ok'; fb.textContent = '✓ Saved!';
     render();
   } catch(e) {
     fb.className = 'feedback err'; fb.textContent = '❌ ' + e.message;
