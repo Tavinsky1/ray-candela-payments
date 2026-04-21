@@ -1,11 +1,11 @@
 {
   "config": {
     "roomCost": 300,
-    "currency": "ÃÂ¢ÃÂÃÂ¬"
+    "currency": "ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ¬"
   },
   "payments": {
     "2026-01": {
-      "AgustÃÂÃÂ­n": true,
+      "AgustÃÂÃÂÃÂÃÂ­n": true,
       "Agus": true,
       "Eric": true,
       "Ludwig": true,
@@ -13,11 +13,12 @@
       "Renzo": true,
       "Adrian": true,
       "Tavo": true,
-      "AgustÃ­n": false,
-      "Agustín": true
+      "AgustÃÂ­n": false,
+      "AgustÃ­n": true,
+      "Agustín": false
     },
     "2026-02": {
-      "AgustÃÂÃÂ­n": true,
+      "AgustÃÂÃÂÃÂÃÂ­n": true,
       "Agus": true,
       "Eric": true,
       "Ludwig": true,
@@ -25,11 +26,12 @@
       "Renzo": true,
       "Adrian": true,
       "Tavo": true,
-      "AgustÃ­n": false,
-      "Agustín": true
+      "AgustÃÂ­n": false,
+      "AgustÃ­n": true,
+      "Agustín": false
     },
     "2026-03": {
-      "AgustÃÂÃÂ­n": true,
+      "AgustÃÂÃÂÃÂÃÂ­n": true,
       "Agus": true,
       "Eric": true,
       "Ludwig": true,
@@ -37,11 +39,12 @@
       "Renzo": true,
       "Adrian": true,
       "Tavo": true,
-      "AgustÃ­n": false,
+      "AgustÃÂ­n": false,
+      "AgustÃ­n": true,
       "Agustín": true
     },
     "2026-04": {
-      "AgustÃÂÃÂ­n": false,
+      "AgustÃÂÃÂÃÂÃÂ­n": false,
       "Agus": false,
       "Eric": false,
       "Ludwig": false,
@@ -49,6 +52,7 @@
       "Renzo": false,
       "Adrian": true,
       "Tavo": false,
+      "AgustÃÂÃÂ­n": false,
       "AgustÃÂ­n": false,
       "AgustÃ­n": false,
       "Agustín": false
