@@ -1,7 +1,7 @@
 {
   "config": {
     "roomCost": 300,
-    "currency": "Ã¢ÂÂ¬",
+    "currency": "ÃÂ¢ÃÂÃÂ¬",
     "members": [
       "Agustin-Piano",
       "Agus",
@@ -52,7 +52,7 @@
       "Juan Pablo": true,
       "Renzo": false,
       "Adrian": true,
-      "Tavo": false
+      "Tavo": true
     }
   }
 }
