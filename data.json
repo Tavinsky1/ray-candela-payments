@@ -1,7 +1,7 @@
 {
   "config": {
     "roomCost": 300,
-    "currency": "ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¬",
+    "currency": "ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¬",
     "members": [
       "Agustin-Piano",
       "Agus",
@@ -62,7 +62,7 @@
       "Juan Pablo": true,
       "Renzo": false,
       "Adrian": false,
-      "Tavo": false
+      "Tavo": true
     }
   }
 }
