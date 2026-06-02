@@ -10,7 +10,8 @@
       "Juan Pablo",
       "Renzo",
       "Adrian",
-      "Tavo"
+      "Tavo",
+      "Martina"
     ]
   },
   "payments": {
@@ -22,7 +23,8 @@
       "Juan Pablo": true,
       "Renzo": true,
       "Adrian": true,
-      "Tavo": true
+      "Tavo": true,
+      "Martina": false
     },
     "2026-02": {
       "Agustin-Piano": true,
@@ -32,7 +34,8 @@
       "Juan Pablo": true,
       "Renzo": true,
       "Adrian": true,
-      "Tavo": true
+      "Tavo": true,
+      "Martina": false
     },
     "2026-03": {
       "Agustin-Piano": true,
@@ -42,7 +45,8 @@
       "Juan Pablo": true,
       "Renzo": true,
       "Adrian": true,
-      "Tavo": true
+      "Tavo": true,
+      "Martina": false
     },
     "2026-04": {
       "Agustin-Piano": true,
@@ -52,7 +56,8 @@
       "Juan Pablo": true,
       "Renzo": true,
       "Adrian": true,
-      "Tavo": true
+      "Tavo": true,
+      "Martina": false
     },
     "2026-05": {
       "Agustin-Piano": false,
@@ -62,7 +67,8 @@
       "Juan Pablo": true,
       "Renzo": false,
       "Adrian": true,
-      "Tavo": true
+      "Tavo": true,
+      "Martina": false
     },
     "2026-06": {
       "Agustin-Piano": true,
@@ -72,7 +78,8 @@
       "Juan Pablo": true,
       "Renzo": true,
       "Adrian": true,
-      "Tavo": true
+      "Tavo": true,
+      "Martina": false
     }
   }
 }
