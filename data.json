@@ -1,9 +1,8 @@
 {
   "config": {
     "roomCost": 300,
-    "currency": "ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¬",
+    "currency": "ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¬",
     "members": [
-      "Agustin-Piano",
       "Agus",
       "Eric",
       "Ludwig",
@@ -11,12 +10,12 @@
       "Renzo",
       "Adrian",
       "Tavo",
-      "Martina"
+      "Martina",
+      "Nils"
     ]
   },
   "payments": {
     "2026-01": {
-      "Agustin-Piano": true,
       "Agus": true,
       "Eric": true,
       "Ludwig": true,
@@ -24,10 +23,10 @@
       "Renzo": true,
       "Adrian": true,
       "Tavo": true,
-      "Martina": true
+      "Martina": true,
+      "Nils": false
     },
     "2026-02": {
-      "Agustin-Piano": true,
       "Agus": true,
       "Eric": true,
       "Ludwig": true,
@@ -35,10 +34,10 @@
       "Renzo": true,
       "Adrian": true,
       "Tavo": true,
-      "Martina": true
+      "Martina": true,
+      "Nils": false
     },
     "2026-03": {
-      "Agustin-Piano": true,
       "Agus": true,
       "Eric": true,
       "Ludwig": true,
@@ -46,10 +45,10 @@
       "Renzo": true,
       "Adrian": true,
       "Tavo": true,
-      "Martina": true
+      "Martina": true,
+      "Nils": false
     },
     "2026-04": {
-      "Agustin-Piano": true,
       "Agus": true,
       "Eric": true,
       "Ludwig": true,
@@ -57,10 +56,10 @@
       "Renzo": true,
       "Adrian": true,
       "Tavo": true,
-      "Martina": true
+      "Martina": true,
+      "Nils": false
     },
     "2026-05": {
-      "Agustin-Piano": false,
       "Agus": true,
       "Eric": true,
       "Ludwig": false,
@@ -68,10 +67,10 @@
       "Renzo": false,
       "Adrian": true,
       "Tavo": true,
-      "Martina": true
+      "Martina": true,
+      "Nils": false
     },
     "2026-06": {
-      "Agustin-Piano": true,
       "Agus": false,
       "Eric": true,
       "Ludwig": false,
@@ -79,7 +78,19 @@
       "Renzo": true,
       "Adrian": true,
       "Tavo": true,
-      "Martina": false
+      "Martina": true,
+      "Nils": false
+    },
+    "2026-07": {
+      "Agus": false,
+      "Eric": false,
+      "Ludwig": false,
+      "Juan Pablo": false,
+      "Renzo": false,
+      "Adrian": false,
+      "Tavo": false,
+      "Martina": false,
+      "Nils": false
     }
   }
 }
